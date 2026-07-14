@@ -3389,13 +3389,25 @@ function buildStaticReportHtml(){
     const t = rowTotals(row);
     const persen = calcPersen(t.halaman, t.sisa);
     const status = statusInfo(persen);
+    const babList = (row.bab || []).map(b => {
+      const bh = Number(b.halaman) || 0;
+      const bs = Math.min(Math.max(Number(b.sisa) || 0, 0), bh);
+      const bPersen = calcPersen(bh, bs);
+      return {
+        nama: b.nama || '(tanpa nama bab)',
+        persen: bPersen,
+        terisi: bh - bs,
+        halaman: bh
+      };
+    });
     return {
       nama: row.nama || '(tanpa nama)',
       persen,
       terisi: t.halaman - t.sisa,
       halaman: t.halaman,
       statusLabel: status.label,
-      statusCls: status.cls
+      statusCls: status.cls,
+      bab: babList
     };
   });
 
@@ -3414,6 +3426,19 @@ function buildStaticReportHtml(){
         </div>
         <div class="report-bar-bg"><div class="report-bar-fill" style="width:${r.persen}%; background:${barColor(r.persen)};"></div></div>
         <div class="report-meta">${r.persen}% &middot; ${r.terisi} / ${r.halaman} halaman</div>
+        ${r.bab.length ? `
+        <div class="bab-list">
+          ${r.bab.map(b => `
+            <div class="bab-row">
+              <div class="bab-row-top">
+                <span class="bab-row-name">${escapeHtml(b.nama)}</span>
+                <span class="bab-row-persen">${b.persen}%</span>
+              </div>
+              <div class="bab-row-bar-bg"><div class="bab-row-bar-fill" style="width:${b.persen}%; background:${barColor(b.persen)};"></div></div>
+            </div>
+          `).join('')}
+        </div>
+        ` : ''}
       </div>
     `).join('')
     : '<div class="report-empty">Belum ada data materi.</div>';
@@ -3466,13 +3491,40 @@ function buildStaticReportHtml(){
   .report-meta{ font-size:12px; color:var(--ink-soft); }
   .report-empty{ text-align:center; color:var(--ink-faint); padding:30px 0; font-size:13.5px; }
   .footnote{ text-align:center; color:var(--ink-faint); font-size:11.5px; margin-top:26px; }
+
+  .identity-card{
+    background: var(--primary); color:#fff; border-radius: var(--radius);
+    padding: 20px 22px; margin-bottom: 18px; box-shadow: var(--shadow-sm);
+    display:flex; gap: 28px; flex-wrap: wrap;
+  }
+  .identity-card .id-item .id-label{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; opacity:.75; margin-bottom:4px; }
+  .identity-card .id-item .id-value{ font-size:22px; font-weight:800; letter-spacing:-.01em; }
+  .identity-card .id-item .id-value.empty{ opacity:.6; font-weight:600; font-size:15px; }
+  .gen-line{ color:var(--ink-soft); font-size:12.5px; margin: -6px 0 20px; }
+
+  .bab-list{ margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border); display:flex; flex-direction:column; gap:9px; }
+  .bab-row-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:3px; }
+  .bab-row-name{ font-size:12.5px; font-weight:600; color: var(--ink); }
+  .bab-row-persen{ font-size:11.5px; font-weight:700; color: var(--ink-soft); flex-shrink:0; }
+  .bab-row-bar-bg{ height:5px; background:#eef0f6; border-radius:99px; overflow:hidden; }
+  .bab-row-bar-fill{ height:100%; border-radius:99px; }
 </style>
 </head>
 <body>
   <div class="wrap">
     <div class="locked-badge">🔒 Laporan read-only &middot; tidak bisa diedit</div>
     <h1>Laporan Progres Materi</h1>
-    <div class="sub">${namaKelasLine ? namaKelasLine + ' &middot; ' : ''}Dibuat ${escapeHtml(generatedAt.toLocaleString('id-ID'))}</div>
+    <div class="identity-card">
+      <div class="id-item">
+        <div class="id-label">Nama</div>
+        <div class="id-value${nama ? '' : ' empty'}">${nama ? escapeHtml(nama) : '(belum diisi)'}</div>
+      </div>
+      <div class="id-item">
+        <div class="id-label">Kelas</div>
+        <div class="id-value${kelas ? '' : ' empty'}">${kelas ? escapeHtml(kelas) : '(belum diisi)'}</div>
+      </div>
+    </div>
+    <div class="gen-line">Dibuat ${escapeHtml(generatedAt.toLocaleString('id-ID'))}</div>
     <div class="summary-card">
       <div>
         <div class="label">Total Progres</div>
