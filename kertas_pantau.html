@@ -1,0 +1,3706 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Progres Materi Presentasi</title>
+<style>
+  :root{
+    --bg: #f6f7fb;
+    --surface: #ffffff;
+    --surface-2: #fbfbfe;
+    --border: #e7e9f1;
+    --border-soft: #eef0f6;
+    --ink: #181b29;
+    --ink-soft: #6b7080;
+    --ink-faint: #9aa0b1;
+
+    --primary: #5b5bf0;
+    --primary-dark: #4747d6;
+    --primary-soft: #ecebff;
+
+    --good: #19a463;
+    --good-soft: #e6f7ee;
+    --warn: #d98c1c;
+    --warn-soft: #fdf2e1;
+    --bad: #e5484d;
+    --bad-soft: #fdebec;
+
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow-sm: 0 1px 2px rgba(20,24,45,0.04), 0 1px 1px rgba(20,24,45,0.03);
+    --shadow-md: 0 8px 24px rgba(30,34,60,0.07), 0 2px 6px rgba(30,34,60,0.04);
+    --shadow-lg: 0 20px 50px rgba(30,34,60,0.16);
+  }
+  *{ box-sizing: border-box; }
+  html, body{ margin:0; }
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 40px 20px 80px;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap{ max-width: 1040px; margin: 0 auto; }
+
+  /* ---- Header ---- */
+  .topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .topbar h1{
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 800;
+    font-size: 26px;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  .topbar .sub{ color: var(--ink-soft); font-size: 14px; }
+
+  .summary-card{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 22px;
+    box-shadow: var(--shadow-sm);
+    display:flex;
+    align-items:center;
+    gap: 18px;
+  }
+  .summary-ring{
+    position: relative;
+    width: 52px; height: 52px;
+    flex-shrink:0;
+  }
+  .summary-ring svg{ transform: rotate(-90deg); }
+  .summary-ring .ring-bg{ stroke: var(--border-soft); }
+  .summary-ring .ring-fill{ stroke: var(--primary); stroke-linecap: round; transition: stroke-dashoffset .4s ease; }
+  .summary-ring .ring-text{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-weight:800; font-size: 13px;
+  }
+  .summary-text .label{ font-size: 11.5px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .05em; font-weight:600; }
+  .summary-text .value{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-weight: 800; font-size: 20px; }
+
+  /* ---- Toolbar ---- */
+  .toolbar{ display:flex; gap:10px; margin-bottom: 20px; flex-wrap: wrap; }
+  button{
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    border:none;
+    cursor:pointer;
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    transition: all .15s ease;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  button:active{ transform: scale(0.97); }
+  .btn-primary{ background: var(--primary); color: #fff; box-shadow: 0 2px 8px rgba(91,91,240,0.3); }
+  .btn-primary:hover{ background: var(--primary-dark); }
+  .btn-ghost{ background: var(--surface); color: var(--ink); border:1px solid var(--border); }
+  .btn-ghost:hover{ background: var(--surface-2); border-color: #d6d9e4; }
+  .btn-danger{ background: var(--surface); color: var(--bad); border:1px solid #f6cdd0; margin-left:auto; }
+  .btn-danger:hover{ background: var(--bad-soft); }
+
+  #autoBackupBtn.ab-connected{ background: var(--good-soft); color: var(--good); border-color: transparent; }
+  #autoBackupBtn.ab-connected:hover{ background: #d7f2e3; }
+  #autoBackupBtn.ab-warn{ background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+  #autoBackupBtn.ab-warn:hover{ background: #fbe7c4; }
+  #autoBackupBtn.ab-error{ background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+  #autoBackupBtn.ab-error:hover{ background: #fbdadd; }
+
+  .save-indicator{
+    display:flex; align-items:center; gap: 7px;
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    padding: 0 4px;
+    user-select: none;
+  }
+  .save-dot{
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--good);
+    flex-shrink: 0;
+    transition: background .2s ease;
+  }
+  .save-indicator.saving .save-dot{
+    background: var(--warn);
+    animation: pulse-dot 1s ease-in-out infinite;
+  }
+  .save-indicator.error .save-dot{
+    background: var(--bad);
+    animation: none;
+  }
+  @keyframes pulse-dot{
+    0%, 100%{ opacity: 1; transform: scale(1); }
+    50%{ opacity: .5; transform: scale(0.8); }
+  }
+  .save-text{ font-weight: 500; }
+
+  /* ---- Materi cards ---- */
+  .materi-list{ display:flex; flex-direction:column; gap: 12px; }
+
+  .materi-card{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    transition: box-shadow .2s ease;
+    position: relative;
+  }
+  .materi-card:hover{ box-shadow: var(--shadow-md); }
+
+  .materi-main{
+    display: grid;
+    grid-template-columns: 1fr 100px 110px 110px 1.3fr auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 18px;
+  }
+
+  .field-label{
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    font-weight: 700;
+    margin-bottom: 4px;
+    display:none;
+  }
+
+  input[type="text"], input[type="number"]{
+    width: 100%;
+    border: 1px solid transparent;
+    background: transparent;
+    font-family: inherit;
+    color: var(--ink);
+    font-size: 14.5px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    transition: all .15s ease;
+  }
+  input[type="text"]{ font-weight: 600; }
+  input[type="number"]{ font-family: 'SF Mono', 'Consolas', 'Menlo', monospace; font-weight: 600; font-size: 14px; }
+  input:hover{ background: var(--surface-2); }
+  input:focus{ outline:none; background: var(--primary-soft); border-color: var(--primary); }
+  input[type="text"]::placeholder{ color: var(--ink-faint); font-weight: 500; }
+
+  .progress-cell{ display:flex; align-items:center; gap: 10px; min-width: 0; }
+  .bar-bg{ flex:1; height: 8px; background: var(--border-soft); border-radius: 99px; overflow:hidden; }
+  .bar-fill{ height:100%; border-radius: 99px; transition: width .35s cubic-bezier(.4,0,.2,1), background .2s; }
+  .persen-label{ font-family: 'SF Mono', 'Consolas', 'Menlo', monospace; font-weight: 700; font-size: 13px; min-width: 44px; text-align:right; }
+
+  .status-pill{
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    padding: 4px 10px;
+    border-radius: 99px;
+    white-space: nowrap;
+    text-align:center;
+  }
+  .status-selesai{ background: var(--good-soft); color: var(--good); }
+  .status-proses{ background: var(--warn-soft); color: var(--warn); }
+  .status-mulai{ background: var(--bad-soft); color: var(--bad); }
+
+  .action-group{ display:flex; align-items:center; gap: 4px; }
+  .icon-btn{
+    background:none; border:none; cursor:pointer; padding: 7px;
+    border-radius: 8px; color: var(--ink-faint);
+    display:flex; align-items:center; justify-content:center;
+    width: 34px; height: 34px;
+  }
+  .icon-btn:hover{ background: var(--surface-2); color: var(--ink); }
+  .icon-btn.danger:hover{ background: var(--bad-soft); color: var(--bad); }
+  .icon-btn svg{ width: 17px; height: 17px; pointer-events: none; }
+
+  .confirm-btn{
+    background: var(--good);
+    color: #fff;
+    font-size: 12.5px;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 2px 6px rgba(25,164,99,0.25);
+    white-space: nowrap;
+  }
+  .confirm-btn:hover{ background: #148650; }
+  .confirm-btn:disabled{
+    background: var(--border-soft); color: var(--ink-faint); box-shadow:none; cursor:not-allowed;
+  }
+
+  /* ---- History panel & Bab (chapter) panel ---- */
+  .history-panel, .bab-panel{
+    border-top: 1px solid var(--border-soft);
+    background: var(--surface-2);
+    padding: 14px 18px 16px;
+    display:none;
+  }
+  .history-panel.open, .bab-panel.open{ display:block; }
+  .history-head{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom: 10px;
+  }
+  .history-head h4{
+    margin:0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight:700; color: var(--ink-soft);
+  }
+  .history-empty{
+    font-size: 13px; color: var(--ink-faint); padding: 10px 0; font-style: italic;
+  }
+  .history-table{ width:100%; border-collapse: collapse; min-width: 560px; }
+  .history-table th{
+    font-size: 10px; text-transform: uppercase; letter-spacing:.05em; color: var(--ink-faint);
+    text-align:left; padding: 6px 10px; font-weight:700;
+  }
+  .history-table td{
+    font-size: 13px; padding: 7px 10px; border-top: 1px solid var(--border-soft);
+    vertical-align: middle;
+  }
+  .history-table tr:hover td{ background: var(--surface); }
+  .history-table .h-time{ color: var(--ink-faint); font-family: 'SF Mono', 'Consolas', 'Menlo', monospace; font-size: 11.5px; }
+  .history-sisa-input{
+    width: 70px;
+    font-family: 'SF Mono', 'Consolas', 'Menlo', monospace;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 5px 8px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--surface);
+  }
+  .history-sisa-input:focus{ outline:none; border-color: var(--primary); background: var(--primary-soft); }
+  .history-persen-mini{ font-family: 'SF Mono', 'Consolas', 'Menlo', monospace; font-weight:700; font-size: 12.5px; }
+  .history-del{
+    background:none; border:none; color: var(--ink-faint); cursor:pointer; font-size: 13px; padding: 3px 6px; border-radius:6px;
+  }
+  .history-del:hover{ color: var(--bad); background: var(--bad-soft); }
+  .history-pages-cell{ min-width: 220px; vertical-align: top; padding-top: 9px; }
+  .history-pages-summary{
+    display:flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .hps-row{
+    display:flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+  .hps-nama{
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .hps-pages{
+    color: var(--ink-soft);
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  /* Bab (chapter) table specifics */
+  .bab-table-wrap{
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    margin: 0 -2px;
+    padding-bottom: 2px;
+    border-radius: 8px;
+  }
+  .bab-table-wrap::-webkit-scrollbar{ height: 6px; }
+  .bab-table-wrap::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 99px; }
+  .bab-table-wrap::-webkit-scrollbar-thumb:hover{ background: #c7cadb; }
+  .bab-table{ width:100%; min-width: 620px; border-collapse: collapse; }
+  .bab-scroll-hint{
+    display:none;
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-top: 6px;
+    align-items: center;
+    gap: 5px;
+  }
+  .bab-scroll-hint svg{ width: 13px; height: 13px; flex-shrink:0; }
+  @media (max-width: 700px){
+    .bab-scroll-hint{ display:flex; }
+  }
+  .bab-table th{ font-size: 10px; text-transform: uppercase; letter-spacing:.05em; color: var(--ink-faint); text-align:left; padding: 6px 8px; font-weight:700; white-space: nowrap; }
+  .bab-table td{ font-size: 13px; padding: 6px 8px; border-top: 1px solid var(--border-soft); vertical-align: middle; }
+  .bab-table tr:hover td{ background: var(--surface); }
+  .bab-nama-input{
+    width: 100%; min-width: 120px;
+    font-family: inherit; font-weight: 600; font-size: 13px;
+    padding: 6px 8px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface);
+  }
+  .bab-num-input{
+    width: 64px;
+    font-family: 'SF Mono', 'Consolas', 'Menlo', monospace; font-weight: 600; font-size: 13px;
+    padding: 6px 8px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface);
+  }
+  .bab-nama-input:focus, .bab-num-input:focus{ outline:none; border-color: var(--primary); background: var(--primary-soft); }
+  .bab-persen-mini{ font-family: 'SF Mono', 'Consolas', 'Menlo', monospace; font-weight:700; font-size: 12.5px; min-width: 38px; display:inline-block; }
+  .bab-progress-cell{ display:flex; align-items:center; gap: 8px; min-width: 110px; }
+  .bab-bar-bg{ flex:1; height: 6px; background: var(--border-soft); border-radius: 99px; overflow:hidden; min-width: 56px; }
+  .bab-bar-fill{ height:100%; border-radius: 99px; transition: width .25s ease, background .2s ease; }
+  .bab-terisi-mini{ font-family: 'SF Mono', 'Consolas', 'Menlo', monospace; font-weight:600; font-size: 13px; color: var(--ink-soft); }
+  .bab-add-row{
+    margin-top: 10px;
+    background: var(--surface);
+    color: var(--primary);
+    border: 1px dashed #c7c9f5;
+    font-size: 12.5px;
+    padding: 7px 12px;
+  }
+  .bab-add-row:hover{ background: var(--primary-soft); }
+  .readonly-val{
+    width: 100%;
+    font-family: 'SF Mono', 'Consolas', 'Menlo', monospace;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 8px 10px;
+    color: var(--ink);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    cursor: default;
+  }
+  .readonly-val .unit{
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 500; font-size: 10.5px; color: var(--ink-faint); margin-left: 3px;
+  }
+  .bab-count-tag{
+    font-size: 10.5px; color: var(--ink-faint); font-weight: 600; margin-left: 4px;
+  }
+
+  .bab-pages-btn{
+    color: var(--primary);
+  }
+  .bab-pages-btn:hover{ background: var(--primary-soft); color: var(--primary-dark); }
+
+  /* ---- Halaman (pages) modal ---- */
+  .pages-box{ max-width: 460px; }
+  .pages-grid{
+    display:flex; flex-wrap:wrap; gap: 7px;
+    max-height: 320px; overflow-y:auto;
+    padding: 4px 2px 14px;
+    margin-bottom: 4px;
+  }
+  .page-chip{
+    width: 38px; height: 38px;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink-soft);
+    font-family: 'SF Mono', 'Consolas', 'Menlo', monospace;
+    font-weight: 700; font-size: 12.5px;
+    display:flex; align-items:center; justify-content:center;
+    cursor: pointer;
+    padding: 0;
+    transition: all .12s ease;
+  }
+  .page-chip.filled{
+    background: var(--good-soft); color: var(--good); border-color: transparent;
+  }
+  .page-chip.filled:hover{ background: var(--bad-soft); color: var(--bad); }
+  .page-chip.filled:active{ transform: scale(0.92); }
+  .page-chip.empty:hover{ background: var(--primary-soft); border-color: var(--primary); color: var(--primary); }
+  .page-chip.empty:active{ transform: scale(0.92); }
+  .pages-legend{
+    display:flex; align-items:center; gap: 16px;
+    font-size: 12px; color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .pages-legend span{ display:flex; align-items:center; gap: 6px; }
+  .pages-legend i{ width:12px; height:12px; border-radius:4px; display:inline-block; }
+  .pages-legend .lg-filled{ background: var(--good); }
+  .pages-legend .lg-empty{ background: var(--surface); border: 1px solid var(--border); }
+
+  .empty-state{
+    text-align:center;
+    padding: 64px 24px;
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    color: var(--ink-soft);
+  }
+  .empty-state .emoji{ font-size: 34px; margin-bottom: 10px; }
+  .empty-state .title{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-weight:700; font-size: 16px; color: var(--ink); margin-bottom:4px; }
+  .empty-state .desc{ font-size: 13.5px; }
+
+  /* ---- Identity card (Nama & Kelas) ---- */
+  .identity-card{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: 16px 22px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .identity-card .id-title{
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-faint);
+    margin-bottom: 5px;
+  }
+  .identity-field{ flex: 1; min-width: 160px; }
+  .identity-input{
+    width: 100%;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    font-family: inherit;
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 600;
+    padding: 9px 12px;
+    border-radius: 10px;
+    transition: all .15s ease;
+  }
+  .identity-input::placeholder{ color: var(--ink-faint); font-weight: 500; }
+  .identity-input:hover{ background: #f0f1f8; }
+  .identity-input:focus{ outline:none; background: var(--primary-soft); border-color: var(--primary); }
+  .identity-divider{
+    width: 1px; height: 40px; background: var(--border-soft); flex-shrink: 0;
+  }
+  @media (max-width: 600px){
+    .identity-divider{ display:none; }
+    .identity-field{ min-width: 100%; }
+  }
+
+  .footnote{
+    margin-top: 18px; font-size: 12px; color: var(--ink-faint); text-align:center;
+  }
+
+  /* ---- Confirm modal ---- */
+  .modal-overlay{
+    position: fixed; inset: 0;
+    background: rgba(15,17,30,0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1000;
+    animation: overlayIn .15s ease;
+  }
+  .modal-overlay.open{ display: flex; }
+  @keyframes overlayIn{ from{ opacity:0; } to{ opacity:1; } }
+
+  .modal-box{
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    max-width: 380px;
+    width: 100%;
+    padding: 24px;
+    animation: modalIn .18s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes modalIn{
+    from{ opacity:0; transform: translateY(8px) scale(.97); }
+    to{ opacity:1; transform: translateY(0) scale(1); }
+  }
+
+  .modal-icon{
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: var(--bad-soft);
+    color: var(--bad);
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom: 14px;
+  }
+  .modal-icon svg{ width: 22px; height: 22px; }
+
+  .modal-title{
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    color: var(--ink);
+  }
+  .modal-desc{
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    margin: 0 0 20px;
+  }
+  .modal-desc strong{ color: var(--ink); font-weight: 700; }
+
+  .modal-actions{
+    display:flex; gap: 10px; justify-content: flex-end;
+  }
+  .modal-actions button{ padding: 10px 18px; }
+  .btn-cancel{ background: var(--surface-2); color: var(--ink); border:1px solid var(--border); }
+  .btn-cancel:hover{ background: var(--border-soft); }
+  .btn-confirm-danger{ background: var(--bad); color: #fff; box-shadow: 0 2px 8px rgba(229,72,77,0.3); }
+  .btn-confirm-danger:hover{ background: #cf3338; }
+  .btn-confirm-primary{ background: var(--primary); color: #fff; box-shadow: 0 2px 8px rgba(91,91,240,0.3); }
+  .btn-confirm-primary:hover{ background: var(--primary-dark); }
+
+  /* ---- Modal Ekspor CSV (nama file bisa diedit) ---- */
+  .export-filename-row{
+    display:flex; align-items:stretch; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); overflow:hidden; margin-bottom: 8px;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .export-filename-row:focus-within{ border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+  .export-filename-row input{
+    flex:1; min-width:0; border:none; outline:none; padding: 10px 10px 10px 12px;
+    font-size: 14px; font-family: inherit; color: var(--ink); background: var(--surface);
+  }
+  .export-filename-suffix{
+    display:flex; align-items:center; padding: 0 12px;
+    background: var(--surface-2); color: var(--ink-faint);
+    font-size: 13px; font-weight: 600; border-left: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .export-filename-hint{
+    font-size: 11.5px; color: var(--ink-faint); margin-top: 0; margin-bottom: 18px;
+  }
+
+  /* ---- Folder backup modal ---- */
+  .folder-box{
+    max-width: 480px;
+  }
+  .folder-head{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+    margin-bottom: 14px;
+  }
+  .folder-head .modal-title{ margin:0; }
+  .folder-head .modal-desc{ margin: 4px 0 0; }
+  .folder-close{
+    width: 30px; height: 30px; flex: none;
+    border-radius: 8px; border: 1px solid var(--border);
+    background: var(--surface-2); color: var(--ink-soft);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  .folder-close:hover{ background: var(--border-soft); }
+  .folder-list{
+    display:flex; flex-direction:column; gap:8px;
+    max-height: 360px; overflow-y:auto;
+    margin-bottom: 14px;
+  }
+  .folder-empty{
+    font-size: 13px; color: var(--ink-faint); text-align:center;
+    padding: 28px 10px;
+    border: 1px dashed var(--border); border-radius: var(--radius-sm);
+  }
+  .folder-item{
+    display:flex; align-items:center; gap:10px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    background: var(--surface-2);
+  }
+  .folder-item-icon{
+    width: 34px; height:34px; border-radius: 9px; flex:none;
+    background: var(--primary-soft); color: var(--primary);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .folder-item-icon svg{ width:17px; height:17px; }
+  .folder-item-meta{ flex:1; min-width:0; }
+  .folder-item-title{ font-size: 13px; font-weight:700; color: var(--ink); }
+  .folder-item-sub{ font-size: 11.5px; color: var(--ink-faint); margin-top:1px; }
+  .folder-item-actions{ display:flex; gap:6px; flex:none; }
+  .folder-item-actions button{
+    width: 30px; height: 30px; padding:0;
+    border-radius: 8px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--ink-soft);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  .folder-item-actions button svg{ width:15px; height:15px; }
+  .folder-item-actions .fi-restore:hover{ background: var(--primary-soft); color: var(--primary); border-color: var(--primary); }
+  .folder-item-actions .fi-download:hover{ background: var(--good-soft); color: var(--good); border-color: var(--good); }
+  .folder-item-actions .fi-delete:hover{ background: var(--bad-soft); color: var(--bad); border-color: var(--bad); }
+  .folder-foot{ font-size: 11.5px; color: var(--ink-faint); text-align:center; }
+
+  /* ---- Dark mode ---- */
+  html[data-theme="dark"]{
+    --bg: #14151f;
+    --surface: #1c1e2b;
+    --surface-2: #242637;
+    --border: #33354a;
+    --border-soft: #2a2c3d;
+    --ink: #edeef5;
+    --ink-soft: #a6abc2;
+    --ink-faint: #757a94;
+    --primary: #7b7bff;
+    --primary-dark: #9393ff;
+    --primary-soft: #292a52;
+    --good: #33c481;
+    --good-soft: #143528;
+    --warn: #e3a13a;
+    --warn-soft: #3a2c12;
+    --bad: #f0666b;
+    --bad-soft: #3a1c1e;
+  }
+  html[data-theme="dark"] body{ background: var(--bg); }
+  html[data-theme="dark"] input[type="text"]:focus,
+  html[data-theme="dark"] input[type="number"]:focus{ background: var(--primary-soft); }
+
+  /* ---- Toolbar row 2 (fitur baru) ---- */
+  .toolbar2{ display:flex; gap:10px; margin-bottom: 16px; flex-wrap: wrap; align-items:center; }
+  .search-box{
+    display:flex; align-items:center; gap:8px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 0 12px; height: 40px;
+    flex: 1 1 220px; max-width: 320px;
+  }
+  .search-box svg{ width:15px; height:15px; color: var(--ink-faint); flex-shrink:0; }
+  .search-box input{ border:none; background:transparent; outline:none; font-size:13.5px; color:var(--ink); width:100%; padding:0; }
+  .filter-chip{
+    font-size: 12.5px; font-weight:600; padding: 9px 13px;
+    border-radius: 99px; border: 1px solid var(--border); background: var(--surface); color: var(--ink-soft);
+    cursor:pointer; white-space:nowrap;
+  }
+  .filter-chip.active{ background: var(--primary); color:#fff; border-color:transparent; }
+
+  .sort-select{
+    font-size: 12.5px; font-weight:600; padding: 9px 12px;
+    border-radius: 99px; border: 1px solid var(--border); background: var(--surface); color: var(--ink-soft);
+    cursor:pointer; height: 38px;
+  }
+  .select-mode-btn.active{ background: var(--primary); color:#fff; border-color:transparent; }
+
+  /* ---- Bulk selection ---- */
+  .select-checkbox{
+    display:none; align-items:center; justify-content:center;
+    width: 20px; height:20px; margin-right: 4px; flex-shrink:0; cursor:pointer;
+  }
+  .materi-list.select-mode .select-checkbox{ display:flex; }
+  .materi-card-row{ display:flex; align-items:flex-start; gap:6px; }
+  .materi-card-row .materi-main-wrap{ flex:1; min-width:0; }
+  .drag-handle{
+    display:none; align-items:center; justify-content:center;
+    width: 20px; color: var(--ink-faint); cursor: grab; flex-shrink:0; touch-action:none; user-select:none;
+    font-size: 15px; letter-spacing: -2px; line-height:1; padding-top: 14px;
+  }
+  .materi-list.sort-manual .drag-handle{ display:flex; }
+  .drag-handle:active{ cursor: grabbing; }
+  .materi-card.dragging{ opacity:.4; }
+  .materi-card.drag-over-top{ box-shadow: inset 0 3px 0 var(--primary); }
+  .materi-card.drag-over-bottom{ box-shadow: inset 0 -3px 0 var(--primary); }
+
+  .bulk-bar{
+    position: sticky; top: 0; z-index: 50;
+    display:none; align-items:center; justify-content:space-between; gap:12px;
+    background: var(--ink); color:#fff; border-radius: var(--radius-sm);
+    padding: 10px 16px; margin-bottom: 14px; font-size: 13.5px; font-weight:600;
+    box-shadow: var(--shadow-md);
+    animation: cardIn .2s ease both;
+  }
+  .bulk-bar.show{ display:flex; }
+  .bulk-bar .bulk-actions{ display:flex; gap:8px; }
+  .bulk-bar button{ font-size: 12.5px; padding: 7px 12px; border-radius: 8px; }
+  .bulk-bar .bulk-cancel{ background: rgba(255,255,255,.12); color:#fff; }
+  .bulk-bar .bulk-delete{ background: var(--bad); color:#fff; }
+
+  /* ---- Card enter / exit animation ---- */
+  @keyframes cardIn{
+    from{ opacity:0; transform: translateY(10px) scale(.98); }
+    to{ opacity:1; transform: translateY(0) scale(1); }
+  }
+  @keyframes cardOut{
+    from{ opacity:1; transform: scale(1); max-height: 400px; margin-bottom: 14px; }
+    to{ opacity:0; transform: scale(.96); max-height:0; margin-bottom:0; padding-top:0; padding-bottom:0; }
+  }
+  .materi-card{ animation: cardIn .32s cubic-bezier(.22,.8,.24,1) both; }
+  .materi-card.removing{ animation: cardOut .28s cubic-bezier(.4,0,.6,1) both; overflow:hidden; pointer-events:none; }
+
+  @keyframes pulseNum{
+    0%{ transform: scale(1); }
+    35%{ transform: scale(1.18); color: var(--primary); }
+    100%{ transform: scale(1); }
+  }
+  .persen-label.pulse{ display:inline-block; animation: pulseNum .35s ease; }
+  .ring-text.pulse, .summary-text .value.pulse{ display:inline-block; animation: pulseNum .35s ease; }
+
+  @keyframes emptyIn{ from{ opacity:0; transform: translateY(8px); } to{ opacity:1; transform:translateY(0); } }
+  .empty-state{ animation: emptyIn .3s ease both; }
+
+  /* ---- Confetti (celebration on completion) ---- */
+  .confetti-piece{
+    position:absolute; top:40%; left:50%; width:7px; height:7px; border-radius:2px;
+    pointer-events:none; z-index: 5;
+    animation: confettiPop .7s cubic-bezier(.2,.7,.3,1) forwards;
+  }
+  @keyframes confettiPop{
+    0%{ opacity:1; transform: translate(-50%,-50%) rotate(0deg) scale(1); }
+    100%{ opacity:0; transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(.4); }
+  }
+
+  /* ---- Toast (undo) ---- */
+  .toast-wrap{ position:fixed; left:0; right:0; bottom: 24px; display:flex; flex-direction:column; align-items:center; gap:8px; z-index: 200; pointer-events:none; }
+  .toast{
+    pointer-events:auto;
+    background: var(--ink); color: var(--bg);
+    border-radius: var(--radius-sm); padding: 11px 14px 11px 16px;
+    display:flex; align-items:center; gap: 14px;
+    box-shadow: var(--shadow-lg);
+    font-size: 13px; font-weight:600;
+    animation: toast-in .18s ease;
+  }
+  @keyframes toast-in{ from{ opacity:0; transform: translateY(10px); } to{ opacity:1; transform:translateY(0);} }
+  .toast button{ background: transparent; color: var(--primary-dark); padding: 4px 10px; font-size:12.5px; }
+  html[data-theme="dark"] .toast{ background:#2c2e42; color:#fff; }
+  html[data-theme="dark"] .toast button{ color: #9393ff; }
+
+  /* ---- Badges: deadline / stagnan ---- */
+  .badge-row{ display:flex; gap:6px; flex-wrap:wrap; padding: 0 18px 12px; }
+  .mini-badge{
+    font-size: 10.5px; font-weight:700; padding: 3px 9px; border-radius:99px;
+    display:inline-flex; align-items:center; gap:4px;
+  }
+  .mini-badge.b-warn{ background: var(--warn-soft); color: var(--warn); }
+  .mini-badge.b-bad{ background: var(--bad-soft); color: var(--bad); }
+  .mini-badge.b-neutral{ background: var(--border-soft); color: var(--ink-soft); }
+  .deadline-input{
+    font-family: inherit; font-size: 11.5px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--ink-soft); border-radius: 7px; padding: 4px 7px;
+  }
+
+  /* ---- Stats / Settings / Share modal ---- */
+  .wide-box{ max-width: 620px; width: 92vw; }
+  .stat-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+  .stat-tile{ background: var(--surface-2); border:1px solid var(--border-soft); border-radius: var(--radius-sm); padding: 12px; text-align:center; }
+  .stat-tile .stv{ font-size: 19px; font-weight:800; color: var(--ink); }
+  .stat-tile .stl{ font-size: 10.5px; color: var(--ink-faint); text-transform:uppercase; letter-spacing:.04em; font-weight:700; margin-top:2px; }
+  .chart-wrap{ background: var(--surface-2); border:1px solid var(--border-soft); border-radius: var(--radius-sm); padding: 12px; margin-bottom:14px; }
+  .chart-title{ font-size:12px; font-weight:700; color: var(--ink-soft); margin-bottom:8px; }
+  .cmp-row{ display:flex; align-items:center; gap:10px; margin-bottom:8px; font-size:12.5px; }
+  .cmp-name{ width: 130px; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600; }
+  .cmp-bar-bg{ flex:1; height:8px; background: var(--border-soft); border-radius:99px; overflow:hidden; }
+  .cmp-bar-fill{ height:100%; border-radius:99px; }
+  .cmp-pct{ width: 38px; text-align:right; font-family: 'SF Mono', 'Consolas', 'Menlo', monospace; font-weight:700; }
+
+  .settings-row{ margin-bottom: 14px; }
+  .settings-row label{ display:block; font-size: 12px; font-weight:700; color: var(--ink-soft); margin-bottom:6px; }
+  .settings-row input[type="text"], .settings-row input[type="password"]{
+    width:100%; border:1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px;
+    background: var(--surface); color: var(--ink); font-size:13.5px;
+  }
+  .settings-hint{ font-size: 11.5px; color: var(--ink-faint); margin-top:6px; line-height:1.5; }
+  .sync-status-row{ display:flex; align-items:center; gap:10px; padding: 10px 12px; background: var(--surface-2); border-radius: var(--radius-sm); margin-bottom:14px; font-size:13px; }
+  .sync-dot{ width:8px; height:8px; border-radius:50%; background: var(--ink-faint); flex-shrink:0; }
+  .sync-dot.on{ background: var(--good); }
+  .sync-dot.err{ background: var(--bad); }
+
+  .share-link-row{ display:flex; gap:8px; margin-bottom: 8px; }
+  .share-link-row input{ flex:1; border:1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; background: var(--surface-2); color: var(--ink-soft); font-size:12.5px; font-family: 'SF Mono', 'Consolas', 'Menlo', monospace; }
+
+  /* ---- Read-only shared report view ---- */
+  #reportView{ display:none; }
+  #reportView .report-card{ background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding:16px 18px; margin-bottom:10px; box-shadow: var(--shadow-sm); }
+  #reportView .report-name{ font-weight:700; font-size:14.5px; margin-bottom:8px; }
+  #reportView .report-bar-bg{ height:8px; background: var(--border-soft); border-radius:99px; overflow:hidden; margin-bottom:6px; }
+  #reportView .report-bar-fill{ height:100%; border-radius:99px; }
+  #reportView .report-meta{ font-size:12px; color: var(--ink-soft); }
+  .report-banner{ background: var(--primary-soft); color: var(--primary-dark); border-radius: var(--radius-sm); padding: 10px 14px; font-size:12.5px; font-weight:600; margin-bottom:18px; }
+
+  /* ---- Print (Ekspor PDF) ---- */
+  @media print{
+    .toolbar, .toolbar2, .identity-card, .action-group, .confirm-btn, .save-indicator, .footnote, .badge-row{ display:none !important; }
+    body{ padding: 10px; background:#fff; }
+    .materi-card{ box-shadow:none; border:1px solid #ccc; break-inside: avoid; }
+    .history-panel, .bab-panel{ display:none !important; }
+  }
+
+  /* labels for mobile */
+  @media (max-width: 880px){
+    .materi-main{ grid-template-columns: 1fr; gap: 10px; }
+    .field-label{ display:block; }
+    .progress-cell{ order: 5; }
+    .action-group{ order: 6; justify-content: flex-end; }
+    .summary-card{ width:100%; justify-content:flex-start; }
+    .topbar{ flex-direction: column; align-items:flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div>
+      <h1>Progres Materi Presentasi</h1>
+      <div class="sub">Pantau halaman terisi tiap materi dan konfirmasi progresnya ke riwayat.</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-ring">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <circle class="ring-bg" cx="26" cy="26" r="22" fill="none" stroke-width="6"/>
+          <circle class="ring-fill" id="ringFill" cx="26" cy="26" r="22" fill="none" stroke-width="6" stroke-dasharray="138.2" stroke-dashoffset="138.2"/>
+        </svg>
+        <div class="ring-text" id="ringText">0%</div>
+      </div>
+      <div class="summary-text">
+        <div class="label">Total Progres</div>
+        <div class="value" id="summaryFraction">0 / 0 halaman</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button type="button" class="btn-primary" id="addRow">+ Tambah Materi</button>
+    <button type="button" class="btn-ghost" id="importBtn">Impor CSV</button>
+    <input type="file" id="importFile" accept=".csv,text/csv" style="display:none;">
+    <button type="button" class="btn-ghost" id="exportBtn">Ekspor CSV</button>
+    <button type="button" class="btn-ghost" id="backupBtn" title="Simpan seluruh data (termasuk riwayat) ke file .json">Backup (.json)</button>
+    <button type="button" class="btn-ghost" id="restoreBtn" title="Muat data dari file backup .json">Restore (.json)</button>
+    <input type="file" id="restoreFile" accept=".json,application/json" style="display:none;">
+    <button type="button" class="btn-ghost" id="folderBtn" title="Lihat semua backup yang tersimpan di perangkat ini">📁 Folder Backup</button>
+    <button type="button" class="btn-ghost" id="autoBackupBtn" title="Aktifkan auto-backup otomatis ke folder &quot;Lembar Pantau&quot;">🗂️ Auto-Backup: <span id="autoBackupStatusText">Nonaktif</span></button>
+    <button type="button" class="btn-ghost" id="importLembarPantauBtn" title="Impor data dari file backup di folder &quot;Lembar Pantau&quot;">📥 Impor dari Lembar Pantau</button>
+    <button type="button" class="btn-ghost select-mode-btn" id="selectModeBtn" title="Pilih beberapa materi untuk aksi massal">☑️ Pilih</button>
+    <button type="button" class="btn-danger" id="resetBtn">Hapus Semua</button>
+    <div class="save-indicator" id="saveIndicator">
+      <span class="save-dot"></span>
+      <span class="save-text" id="saveText">Tersimpan</span>
+    </div>
+  </div>
+
+  <div class="toolbar2">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="searchInput" placeholder="Cari materi atau bab... (Ctrl+F)">
+    </div>
+    <button type="button" class="filter-chip active" data-filter="semua">Semua</button>
+    <button type="button" class="filter-chip" data-filter="mulai">Belum Mulai</button>
+    <button type="button" class="filter-chip" data-filter="proses">Proses</button>
+    <button type="button" class="filter-chip" data-filter="selesai">Selesai</button>
+    <select class="sort-select" id="sortSelect" title="Urutkan daftar materi">
+      <option value="manual">Urutan Manual</option>
+      <option value="nama-asc">Nama (A-Z)</option>
+      <option value="nama-desc">Nama (Z-A)</option>
+      <option value="progres-desc">Progres Tertinggi</option>
+      <option value="progres-asc">Progres Terendah</option>
+      <option value="deadline">Deadline Terdekat</option>
+      <option value="update">Terbaru Diupdate</option>
+    </select>
+    <button type="button" class="btn-ghost" id="themeToggleBtn" title="Ganti tema terang/gelap">🌙 Tema</button>
+    <button type="button" class="btn-ghost" id="statsBtn" title="Statistik & tren progres">📊 Statistik</button>
+    <button type="button" class="btn-ghost" id="remindBtn" title="Pengingat progres">🔔 Pengingat</button>
+    <button type="button" class="btn-ghost" id="pdfBtn" title="Ekspor laporan rapi ke PDF">🖨️ PDF</button>
+    <button type="button" class="btn-ghost" id="shareBtn" title="Bagikan laporan (read-only)">🔗 Bagikan</button>
+    <button type="button" class="btn-ghost" id="cloudBtn" title="Sinkronisasi Google Drive">☁️ Cloud Sync</button>
+  </div>
+
+  <!-- Identity: Nama & Kelas -->
+  <div class="identity-card">
+    <div class="identity-field">
+      <div class="id-title">Nama</div>
+      <input type="text" class="identity-input" id="identityNama" placeholder="Masukkan nama...">
+    </div>
+    <div class="identity-divider"></div>
+    <div class="identity-field">
+      <div class="id-title">Kelas</div>
+      <input type="text" class="identity-input" id="identityKelas" placeholder="Masukkan kelas...">
+    </div>
+  </div>
+
+  <div class="bulk-bar" id="bulkBar">
+    <span id="bulkCountText">0 dipilih</span>
+    <div class="bulk-actions">
+      <button type="button" class="bulk-cancel" id="bulkCancelBtn">Batal</button>
+      <button type="button" class="bulk-delete" id="bulkDeleteBtn">Hapus Terpilih</button>
+    </div>
+  </div>
+
+  <div class="materi-list sort-manual" id="materiList"></div>
+
+  <div class="empty-state" id="emptyState" style="display:none;">
+    <div class="emoji">📄</div>
+    <div class="title">Belum ada materi</div>
+    <div class="desc">Klik "Tambah Materi" untuk mulai mencatat progres.</div>
+  </div>
+
+  <div class="footnote">Data tersimpan otomatis di perangkat ini — tidak terkirim ke server manapun.</div>
+</div>
+
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <div class="modal-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+    </div>
+    <div class="modal-title" id="modalTitle">Hapus materi?</div>
+    <p class="modal-desc" id="modalDesc">Tindakan ini tidak bisa dibatalkan.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" id="modalCancel">Batal</button>
+      <button type="button" class="btn-confirm-danger" id="modalConfirm">Hapus</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="exportModal">
+  <div class="modal-box">
+    <div class="modal-icon" style="background: var(--primary-soft); color: var(--primary);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="m6 9 6 6 6-6"/><path d="M19 21H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h2"/><path d="M19 13h2a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/></svg>
+    </div>
+    <div class="modal-title">Ekspor ke CSV</div>
+    <p class="modal-desc">Beri nama file sebelum diunduh.</p>
+    <div class="export-filename-row">
+      <input type="text" id="exportFilenameInput" autocomplete="off" spellcheck="false" placeholder="progres-materi">
+      <span class="export-filename-suffix">.csv</span>
+    </div>
+    <p class="export-filename-hint">Karakter yang tidak valid untuk nama file akan otomatis dirapikan.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" id="exportCancelBtn">Batal</button>
+      <button type="button" class="btn-confirm-primary" id="exportConfirmBtn">Ekspor</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="folderModal">
+  <div class="modal-box folder-box">
+    <div class="folder-head">
+      <div>
+        <div class="modal-title">📁 Folder Backup</div>
+        <p class="modal-desc">Setiap kali kamu menekan "Backup (.json)", salinannya otomatis tersimpan di sini (di perangkat ini).</p>
+      </div>
+      <button type="button" class="folder-close" id="folderCloseBtn" aria-label="Tutup">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="folder-list" id="folderList"></div>
+    <div class="folder-foot">Maks. 30 backup tersimpan otomatis; backup terlama akan terhapus otomatis.</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="pagesModal">
+  <div class="modal-box pages-box">
+    <div class="folder-head">
+      <div>
+        <div class="modal-title" id="pagesModalTitle">Halaman Bab</div>
+        <p class="modal-desc" id="pagesModalDesc">Klik halaman yang belum terisi untuk menandainya sudah terisi.</p>
+      </div>
+      <button type="button" class="folder-close" id="pagesCloseBtn" aria-label="Tutup">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="pages-legend">
+      <span><i class="lg-empty"></i> Belum terisi (klik untuk menandai)</span>
+      <span><i class="lg-filled"></i> Sudah terisi</span>
+    </div>
+    <div class="pages-grid" id="pagesGrid"></div>
+  </div>
+</div>
+
+<!-- Report view (dibuka lewat link berbagi, read-only) -->
+<div class="wrap" id="reportView">
+  <div class="topbar">
+    <div>
+      <h1 id="reportTitle">Laporan Progres</h1>
+      <div class="sub" id="reportSub">Ringkasan progres (read-only)</div>
+    </div>
+  </div>
+  <div class="report-banner">🔗 Ini adalah tautan laporan read-only. Perubahan tidak dapat disimpan dari tampilan ini.</div>
+  <div id="reportList"></div>
+</div>
+
+<div class="modal-overlay" id="statsModal">
+  <div class="modal-box wide-box">
+    <div class="folder-head">
+      <div>
+        <div class="modal-title">📊 Statistik & Tren</div>
+        <p class="modal-desc">Analisis kecepatan kerja berdasarkan riwayat konfirmasi.</p>
+      </div>
+      <button type="button" class="folder-close" id="statsCloseBtn" aria-label="Tutup">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="stat-grid" id="statTiles"></div>
+    <div class="chart-wrap">
+      <div class="chart-title">Tren progres keseluruhan (dari riwayat konfirmasi)</div>
+      <canvas id="trendCanvas" width="560" height="160" style="width:100%;height:160px;"></canvas>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Perbandingan progres antar materi</div>
+      <div id="cmpList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="remindModal">
+  <div class="modal-box">
+    <div class="folder-head">
+      <div>
+        <div class="modal-title">🔔 Pengingat Progres</div>
+        <p class="modal-desc" id="remindDesc">Aktifkan notifikasi agar diingatkan jika progres stagnan &gt;3 hari atau deadline mendekat.</p>
+      </div>
+      <button type="button" class="folder-close" id="remindCloseBtn" aria-label="Tutup">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="sync-status-row">
+      <span class="sync-dot" id="notifDot"></span>
+      <span id="notifStatusText">Notifikasi belum diaktifkan</span>
+    </div>
+    <div class="modal-actions" style="justify-content:flex-start; margin-bottom:16px;">
+      <button type="button" class="btn-confirm-primary" id="enableNotifBtn">Aktifkan Notifikasi Browser</button>
+    </div>
+    <div id="stagnantList"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="cloudModal">
+  <div class="modal-box">
+    <div class="folder-head">
+      <div>
+        <div class="modal-title">☁️ Cloud Sync (Google Drive)</div>
+        <p class="modal-desc">Sinkronkan data ke Google Drive milikmu agar bisa diakses dari perangkat lain.</p>
+      </div>
+      <button type="button" class="folder-close" id="cloudCloseBtn" aria-label="Tutup">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="sync-status-row">
+      <span class="sync-dot" id="cloudDot"></span>
+      <span id="cloudStatusText">Belum terhubung</span>
+    </div>
+    <div class="settings-row">
+      <label>Google OAuth Client ID</label>
+      <input type="text" id="gdriveClientId" placeholder="xxxxxxxx.apps.googleusercontent.com">
+      <div class="settings-hint">Buat sendiri di Google Cloud Console → APIs &amp; Services → Credentials → OAuth Client ID (tipe "Web application"), tambahkan origin tempat file ini dihosting. Client ID disimpan hanya di perangkat ini (localStorage), tidak dikirim ke server manapun selain Google.</div>
+    </div>
+    <div class="modal-actions" style="justify-content:flex-start; margin-bottom:10px; flex-wrap:wrap;">
+      <button type="button" class="btn-confirm-primary" id="cloudConnectBtn">Hubungkan &amp; Masuk</button>
+      <button type="button" class="btn-ghost" id="cloudUploadBtn">Unggah Sekarang</button>
+      <button type="button" class="btn-ghost" id="cloudDownloadBtn">Ambil dari Drive</button>
+      <button type="button" class="btn-cancel" id="cloudDisconnectBtn">Putuskan</button>
+    </div>
+    <div class="settings-hint">Data disimpan sebagai file privat di App Data folder akun Google-mu (tidak terlihat di Drive biasa), hanya bisa diakses lewat aplikasi ini.</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="shareModal">
+  <div class="modal-box">
+    <div class="folder-head">
+      <div>
+        <div class="modal-title">🔗 Bagikan Laporan</div>
+        <p class="modal-desc">Tautan read-only berisi ringkasan progres saat ini (tanpa riwayat detail).</p>
+      </div>
+      <button type="button" class="folder-close" id="shareCloseBtn" aria-label="Tutup">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="share-link-row">
+      <input type="text" id="shareLinkInput" readonly>
+      <button type="button" class="btn-confirm-primary" id="shareCopyBtn">Salin</button>
+    </div>
+    <div class="settings-hint">Tautan ini hanya berfungsi jika file HTML ini dihosting di alamat web yang tetap (mis. GitHub Pages). Siapa pun dengan tautan ini bisa melihat ringkasan progres, tanpa bisa mengubah data.</div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+
+const STORAGE_KEY = 'progres_materi_data_v3';
+const STORAGE_KEY_OLD = 'progres_materi_data_v2';
+const STORAGE_KEY_IDENTITY = 'progres_materi_identity_v1';
+const BACKUP_FOLDER_KEY = 'progres_materi_backup_folder_v1';
+const BACKUP_FOLDER_LIMIT = 30;
+
+/* ---------- Safe storage wrapper (won't crash the whole app if storage is blocked) ---------- */
+let storageAvailable = true;
+function safeGetStorage(key){
+  try{
+    return localStorage.getItem(key);
+  } catch(e){
+    storageAvailable = false;
+    return null;
+  }
+}
+function safeSetStorage(key, value){
+  try{
+    localStorage.setItem(key, value);
+    storageAvailable = true;
+  } catch(e){
+    storageAvailable = false;
+  }
+}
+
+let data;
+try{
+  const raw = safeGetStorage(STORAGE_KEY);
+  if(raw){
+    data = JSON.parse(raw) || defaultData();
+  } else {
+    // Coba migrasi dari versi lama (v2) yang belum punya struktur bab
+    const oldRaw = safeGetStorage(STORAGE_KEY_OLD);
+    if(oldRaw){
+      const oldData = JSON.parse(oldRaw) || [];
+      data = oldData.map(migrateRow);
+    } else {
+      data = defaultData();
+    }
+  }
+} catch(e){
+  data = defaultData();
+}
+data = data.map(normalizeRow);
+
+function migrateRow(r){
+  return {
+    id: r.id || cryptoId(),
+    nama: r.nama || '',
+    historyOpen: false,
+    babOpen: false,
+    history: Array.isArray(r.history) ? r.history : [],
+    bab: [
+      { id: cryptoId(), nama: 'Bab 1', halaman: Number(r.halaman) || 0, sisa: Number(r.sisa) || 0 }
+    ]
+  };
+}
+
+function normalizeRow(r){
+  if(!Array.isArray(r.bab)){
+    r = migrateRow(r);
+  }
+  if(typeof r.babOpen !== 'boolean') r.babOpen = false;
+  if(typeof r.historyOpen !== 'boolean') r.historyOpen = false;
+  if(!Array.isArray(r.history)) r.history = [];
+  if(!Array.isArray(r.bab) || r.bab.length === 0){
+    r.bab = [{ id: cryptoId(), nama: 'Bab 1', halaman: 0, sisa: 0 }];
+  }
+  if(typeof r.deadline !== 'string') r.deadline = '';
+  return r;
+}
+
+function defaultData(){
+  return [
+    {
+      id: cryptoId(),
+      nama: 'Pengantar Kimia Hijau',
+      historyOpen: false,
+      babOpen: false,
+      bab: [
+        { id: cryptoId(), nama: 'Bab 1 - Pendahuluan', halaman: 8, sisa: 0 },
+        { id: cryptoId(), nama: 'Bab 2 - Konsep Dasar', halaman: 12, sisa: 5 },
+      ],
+      history: [
+        { id: cryptoId(), time: Date.now() - 86400000 * 2, sisa: 12 },
+        { id: cryptoId(), time: Date.now() - 86400000, sisa: 5 },
+      ]
+    },
+    {
+      id: cryptoId(),
+      nama: 'Studi Kasus: Mosque Architecture',
+      historyOpen: false,
+      babOpen: false,
+      bab: [
+        { id: cryptoId(), nama: 'Bab 1', halaman: 12, sisa: 12 },
+      ],
+      history: []
+    },
+  ];
+}
+
+function cryptoId(){
+  return 'id-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+}
+
+/* ---------- Toast + Undo system ---------- */
+const toastWrapEl = document.getElementById('toastWrap');
+let undoStack = [];
+const UNDO_LIMIT = 20;
+
+function pushUndoSnapshot(){
+  try{
+    undoStack.push(JSON.parse(JSON.stringify(data)));
+    if(undoStack.length > UNDO_LIMIT) undoStack.shift();
+  } catch(e){}
+}
+
+function performUndo(){
+  if(undoStack.length === 0){
+    showToast('Tidak ada aksi untuk dibatalkan.', null);
+    return;
+  }
+  data = undoStack.pop();
+  save();
+  render();
+  showToast('Perubahan dibatalkan.', null);
+}
+
+function showToast(message, undoLabel, onUndo){
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  const msg = document.createElement('span');
+  msg.textContent = message;
+  toast.appendChild(msg);
+  if(undoLabel && typeof onUndo === 'function'){
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = undoLabel;
+    btn.addEventListener('click', () => {
+      onUndo();
+      toast.remove();
+    });
+    toast.appendChild(btn);
+  }
+  toastWrapEl.appendChild(toast);
+  setTimeout(() => { toast.remove(); }, 5000);
+}
+
+function deleteWithUndo(message, mutateFn){
+  pushUndoSnapshot();
+  const snapshotForUndo = undoStack[undoStack.length - 1];
+  mutateFn();
+  save();
+  render();
+  showToast(message, 'Urungkan', () => {
+    data = snapshotForUndo;
+    save();
+    render();
+  });
+}
+
+/* ---------- Custom confirm modal (replaces native confirm()) ---------- */
+const modalOverlay = document.getElementById('confirmModal');
+const modalTitleEl = document.getElementById('modalTitle');
+const modalDescEl = document.getElementById('modalDesc');
+const modalCancelBtn = document.getElementById('modalCancel');
+const modalConfirmBtn = document.getElementById('modalConfirm');
+
+let pendingConfirmAction = null;
+
+function openConfirmModal(title, descHtml, onConfirm, opts){
+  modalTitleEl.textContent = title;
+  modalDescEl.innerHTML = descHtml;
+  pendingConfirmAction = onConfirm;
+  const isInfo = typeof onConfirm !== 'function';
+  modalConfirmBtn.textContent = (opts && opts.confirmLabel) || (isInfo ? 'Tutup' : 'Hapus');
+  modalConfirmBtn.classList.toggle('btn-confirm-danger', !isInfo);
+  modalConfirmBtn.classList.toggle('btn-cancel', isInfo);
+  modalCancelBtn.style.display = isInfo ? 'none' : '';
+  modalOverlay.classList.add('open');
+}
+
+function closeConfirmModal(){
+  modalOverlay.classList.remove('open');
+  pendingConfirmAction = null;
+}
+
+modalCancelBtn.addEventListener('click', () => {
+  closeConfirmModal();
+});
+
+modalConfirmBtn.addEventListener('click', () => {
+  const action = pendingConfirmAction;
+  closeConfirmModal();
+  if(typeof action === 'function'){
+    action();
+  }
+});
+
+modalOverlay.addEventListener('click', (e) => {
+  if(e.target === modalOverlay){
+    closeConfirmModal();
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape' && modalOverlay.classList.contains('open')){
+    closeConfirmModal();
+  }
+  if(e.key === 'Escape' && exportModalOverlay.classList.contains('open')){
+    closeExportModal();
+  }
+  if(e.key === 'Escape' && folderModalOverlay.classList.contains('open')){
+    closeFolderModal();
+  }
+  if(e.key === 'Escape' && pagesModalOverlay.classList.contains('open')){
+    closePagesModal();
+  }
+  ['statsModal','remindModal','cloudModal','shareModal'].forEach(id => {
+    const el = document.getElementById(id);
+    if(e.key === 'Escape' && el && el.classList.contains('open')){
+      el.classList.remove('open');
+    }
+  });
+
+  const ctrlOrCmd = e.ctrlKey || e.metaKey;
+  if(ctrlOrCmd && e.key.toLowerCase() === 'n'){
+    e.preventDefault();
+    document.getElementById('addRow').click();
+  } else if(ctrlOrCmd && e.key.toLowerCase() === 's'){
+    e.preventDefault();
+    clearTimeout(saveDebounceTimer);
+    persistNow();
+    showToast('Data disimpan.', null);
+  } else if(ctrlOrCmd && e.key.toLowerCase() === 'z'){
+    const anyModalOpen = document.querySelector('.modal-overlay.open');
+    if(!anyModalOpen){
+      e.preventDefault();
+      performUndo();
+    }
+  } else if(ctrlOrCmd && e.key.toLowerCase() === 'f'){
+    const searchEl = document.getElementById('searchInput');
+    if(searchEl){
+      e.preventDefault();
+      searchEl.focus();
+      searchEl.select();
+    }
+  }
+});
+
+/* ---------- Folder Backup: simpan & kelola backup di dalam aplikasi ---------- */
+const folderModalOverlay = document.getElementById('folderModal');
+const folderListEl = document.getElementById('folderList');
+const folderCloseBtn = document.getElementById('folderCloseBtn');
+
+function loadBackupFolder(){
+  try{
+    const raw = safeGetStorage(BACKUP_FOLDER_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list : [];
+  } catch(e){
+    return [];
+  }
+}
+
+function saveBackupFolder(list){
+  safeSetStorage(BACKUP_FOLDER_KEY, JSON.stringify(list));
+}
+
+function addToBackupFolder(payload, label){
+  const list = loadBackupFolder();
+  list.unshift({
+    id: cryptoId(),
+    time: Date.now(),
+    label: label || 'Backup manual',
+    materiCount: Array.isArray(payload.data) ? payload.data.length : 0,
+    payload: payload
+  });
+  while(list.length > BACKUP_FOLDER_LIMIT){
+    list.pop();
+  }
+  saveBackupFolder(list);
+  return list;
+}
+
+function formatBackupTime(ts){
+  const d = new Date(ts);
+  const pad = n => String(n).padStart(2, '0');
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function renderFolderList(){
+  const list = loadBackupFolder();
+  folderListEl.innerHTML = '';
+
+  if(list.length === 0){
+    const empty = document.createElement('div');
+    empty.className = 'folder-empty';
+    empty.textContent = 'Belum ada backup yang tersimpan. Klik "Backup (.json)" untuk membuat backup pertama.';
+    folderListEl.appendChild(empty);
+    return;
+  }
+
+  list.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'folder-item';
+    row.innerHTML = `
+      <div class="folder-item-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+      </div>
+      <div class="folder-item-meta">
+        <div class="folder-item-title">${escapeHtml(item.label || 'Backup')}</div>
+        <div class="folder-item-sub">${formatBackupTime(item.time)} &middot; ${item.materiCount} materi</div>
+      </div>
+      <div class="folder-item-actions">
+        <button type="button" class="fi-restore" title="Restore dari backup ini">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.6-6.4"/><path d="M3 4v5h5"/></svg>
+        </button>
+        <button type="button" class="fi-download" title="Unduh file .json ini">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/></svg>
+        </button>
+        <button type="button" class="fi-delete" title="Hapus backup ini">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+      </div>
+    `;
+    row.querySelector('.fi-restore').addEventListener('click', () => restoreFromFolderItem(item));
+    row.querySelector('.fi-download').addEventListener('click', () => downloadFolderItem(item));
+    row.querySelector('.fi-delete').addEventListener('click', () => deleteFolderItem(item.id));
+    folderListEl.appendChild(row);
+  });
+}
+
+function openFolderModal(){
+  renderFolderList();
+  folderModalOverlay.classList.add('open');
+}
+
+function closeFolderModal(){
+  folderModalOverlay.classList.remove('open');
+}
+
+document.getElementById('folderBtn').addEventListener('click', openFolderModal);
+folderCloseBtn.addEventListener('click', closeFolderModal);
+folderModalOverlay.addEventListener('click', (e) => {
+  if(e.target === folderModalOverlay){
+    closeFolderModal();
+  }
+});
+
+function applyBackupPayload(parsed){
+  const importedRows = Array.isArray(parsed) ? parsed : parsed.data;
+  if(!Array.isArray(importedRows)) return false;
+  pushUndoSnapshot();
+  data = importedRows.map(normalizeRow);
+  const importedIdentity = (!Array.isArray(parsed) && parsed.identity) ? parsed.identity : null;
+  if(importedIdentity){
+    safeSetStorage(STORAGE_KEY_IDENTITY, JSON.stringify(importedIdentity));
+    const namEl = document.getElementById('identityNama');
+    const kelEl = document.getElementById('identityKelas');
+    if(namEl) namEl.value = importedIdentity.nama || '';
+    if(kelEl) kelEl.value = importedIdentity.kelas || '';
+  }
+  save();
+  render();
+  return true;
+}
+
+function restoreFromFolderItem(item){
+  openConfirmModal(
+    'Restore dari backup ini?',
+    `Backup <strong>${escapeHtml(item.label || 'Backup')}</strong> (${formatBackupTime(item.time)}, ${item.materiCount} materi) akan <strong>menggantikan semua data saat ini</strong>. Lanjutkan?`,
+    () => {
+      applyBackupPayload(item.payload);
+      closeFolderModal();
+    }
+  );
+}
+
+function downloadFolderItem(item){
+  const blob = new Blob([JSON.stringify(item.payload, null, 2)], { type: 'application/json;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const stamp = new Date(item.time).toISOString().slice(0, 10);
+  a.download = `progres-materi-backup-${stamp}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function deleteFolderItem(id){
+  openConfirmModal(
+    'Hapus backup ini?',
+    'Backup ini akan dihapus dari folder secara permanen (file yang sudah diunduh ke perangkat tidak terpengaruh).',
+    () => {
+      const list = loadBackupFolder().filter(it => it.id !== id);
+      saveBackupFolder(list);
+      renderFolderList();
+    }
+  );
+}
+
+/* ---------- Halaman per bab: daftar halaman mana yang sudah/belum terisi ---------- */
+const pagesModalOverlay = document.getElementById('pagesModal');
+const pagesGridEl = document.getElementById('pagesGrid');
+const pagesModalTitleEl = document.getElementById('pagesModalTitle');
+const pagesModalDescEl = document.getElementById('pagesModalDesc');
+const pagesCloseBtn = document.getElementById('pagesCloseBtn');
+
+let currentPagesCtx = null; // { card, row, bEntry, tr }
+
+/* Ambil (atau buat) daftar nomor halaman yang sudah terisi untuk satu bab.
+   Jika belum ada datanya (bab lama / hasil impor), nomor 1..terisi otomatis dianggap sudah terisi. */
+function getFilledPages(b){
+  const h = Math.max(0, Number(b.halaman) || 0);
+  if(!Array.isArray(b.filled)){
+    const s = Math.min(Math.max(Number(b.sisa) || 0, 0), h);
+    const terisi = h - s;
+    b.filled = [];
+    for(let i = 1; i <= terisi; i++) b.filled.push(i);
+  }
+  b.filled = Array.from(new Set(b.filled.filter(p => Number.isInteger(p) && p >= 1 && p <= h))).sort((x, y) => x - y);
+  return b.filled;
+}
+
+/* Sinkronkan jumlah halaman terisi (mis. setelah input manual "Terisi"/"Belum Terisi"/"Halaman" diubah)
+   dengan daftar nomor halaman, sambil mempertahankan halaman yang sudah ditandai sebelumnya. */
+function syncFilledCount(b, targetTerisi){
+  const h = Math.max(0, Number(b.halaman) || 0);
+  const target = Math.min(Math.max(Number(targetTerisi) || 0, 0), h);
+  const filled = getFilledPages(b);
+  while(filled.length < target){
+    let p = 1;
+    while(filled.includes(p)) p++;
+    if(p > h) break;
+    filled.push(p);
+  }
+  while(filled.length > target){
+    filled.sort((x, y) => x - y);
+    filled.pop();
+  }
+  b.filled = filled.sort((x, y) => x - y);
+}
+
+/* Ambil daftar nomor halaman yang masih belum terisi untuk satu bab */
+function getUnfilledPages(b){
+  const h = Math.max(0, Number(b.halaman) || 0);
+  if(h <= 0) return [];
+  const filledSet = new Set(getFilledPages(b));
+  const result = [];
+  for(let p = 1; p <= h; p++){
+    if(!filledSet.has(p)) result.push(p);
+  }
+  return result;
+}
+
+/* Ringkasan halaman yang belum terisi di seluruh bab suatu materi — dipakai saat "Konfirmasi" disimpan ke riwayat */
+function getUnfilledSummary(row){
+  const summary = [];
+  (row.bab || []).forEach(b => {
+    const pages = getUnfilledPages(b);
+    if(pages.length > 0){
+      summary.push({ nama: b.nama || '(tanpa nama)', pages });
+    }
+  });
+  return summary;
+}
+
+function openPagesModal(card, row, bEntry, tr){
+  currentPagesCtx = { card, row, bEntry, tr };
+  renderPagesGrid();
+  pagesModalOverlay.classList.add('open');
+}
+
+function closePagesModal(){
+  pagesModalOverlay.classList.remove('open');
+  currentPagesCtx = null;
+}
+
+function renderPagesGrid(){
+  if(!currentPagesCtx) return;
+  const { bEntry } = currentPagesCtx;
+  const h = Math.max(0, Number(bEntry.halaman) || 0);
+  const filled = getFilledPages(bEntry);
+  const filledSet = new Set(filled);
+  const belum = h - filled.length;
+
+  pagesModalTitleEl.textContent = `Halaman — ${bEntry.nama || '(tanpa nama)'}`;
+  pagesModalDescEl.textContent = h <= 0
+    ? 'Bab ini belum memiliki jumlah halaman. Isi kolom "Halaman" dahulu.'
+    : (belum > 0
+        ? `${belum} dari ${h} halaman belum terisi. Klik halaman di bawah untuk menandainya sudah terisi.`
+        : 'Semua halaman pada bab ini sudah terisi 🎉');
+
+  if(h <= 0){
+    pagesGridEl.innerHTML = '<div class="history-empty">Atur jumlah halaman bab ini dahulu.</div>';
+    return;
+  }
+
+  let html = '';
+  for(let p = 1; p <= h; p++){
+    const isFilled = filledSet.has(p);
+    html += `<button type="button" class="page-chip ${isFilled ? 'filled' : 'empty'}" data-page="${p}" title="${isFilled ? 'Klik untuk membatalkan tanda terisi' : 'Klik untuk menandai sudah terisi'}">${p}</button>`;
+  }
+  pagesGridEl.innerHTML = html;
+
+  pagesGridEl.querySelectorAll('.page-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = Number(btn.dataset.page);
+      const f = getFilledPages(bEntry);
+      const idx = f.indexOf(p);
+      if(idx === -1){
+        f.push(p);
+      } else {
+        f.splice(idx, 1);
+      }
+      bEntry.filled = f.sort((x, y) => x - y);
+      bEntry.sisa = h - bEntry.filled.length;
+      save();
+      renderPagesGrid();
+      syncBabRowAfterPagesChange();
+    });
+  });
+}
+
+/* Setelah menandai halaman dari modal, perbarui tampilan baris bab (Terisi/Belum Terisi/progress bar) tanpa render ulang seluruh panel */
+function syncBabRowAfterPagesChange(){
+  if(!currentPagesCtx) return;
+  const { card, row, bEntry, tr } = currentPagesCtx;
+  const persen = calcPersen(bEntry.halaman, bEntry.sisa);
+  const terisi = (Number(bEntry.halaman) || 0) - (Number(bEntry.sisa) || 0);
+  const terisiInput = tr.querySelector('.bab-terisi-input');
+  const sisaInput = tr.querySelector('.bab-sisa-input');
+  if(terisiInput) terisiInput.value = terisi;
+  if(sisaInput) sisaInput.value = bEntry.sisa;
+  const persenMini = tr.querySelector('.bab-persen-mini');
+  const barFill = tr.querySelector('.bab-bar-fill');
+  if(persenMini) persenMini.textContent = persen + '%';
+  if(barFill){ barFill.style.width = persen + '%'; barFill.style.background = barColor(persen); }
+  updateCardProgress(card, row);
+}
+
+pagesCloseBtn.addEventListener('click', closePagesModal);
+pagesModalOverlay.addEventListener('click', (e) => {
+  if(e.target === pagesModalOverlay){
+    closePagesModal();
+  }
+});
+
+/* ---------- Auto-save with visual indicator ---------- */
+const saveIndicatorEl = document.getElementById('saveIndicator');
+const saveTextEl = document.getElementById('saveText');
+let saveDebounceTimer = null;
+let saveFlashTimer = null;
+
+function setSaveStatus(status){
+  saveIndicatorEl.classList.remove('saving', 'error');
+  if(status === 'saving'){
+    saveIndicatorEl.classList.add('saving');
+    saveTextEl.textContent = 'Menyimpan...';
+  } else if(status === 'saved'){
+    saveTextEl.textContent = 'Tersimpan';
+  } else if(status === 'error'){
+    saveIndicatorEl.classList.add('error');
+    saveTextEl.textContent = 'Gagal menyimpan';
+  }
+}
+
+function persistNow(){
+  safeSetStorage(STORAGE_KEY, JSON.stringify(data));
+  if(storageAvailable){
+    setSaveStatus('saved');
+  } else {
+    setSaveStatus('error');
+  }
+  writeAutoBackup();
+}
+
+function save(){
+  // Show "saving" immediately, then debounce the actual write
+  // so rapid typing doesn't hammer localStorage on every keystroke.
+  setSaveStatus('saving');
+  clearTimeout(saveDebounceTimer);
+  saveDebounceTimer = setTimeout(() => {
+    persistNow();
+  }, 400);
+}
+
+// Safety net: flush any pending save immediately before the tab closes/refreshes.
+window.addEventListener('beforeunload', () => {
+  clearTimeout(saveDebounceTimer);
+  persistNow();
+});
+
+// Also flush when the tab becomes hidden (mobile app switch, etc.)
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'hidden'){
+    clearTimeout(saveDebounceTimer);
+    persistNow();
+  }
+});
+
+/* ---------- Auto-Backup ke folder "Lembar Pantau" (File System Access API) ---------- */
+const FS_DB_NAME = 'progres_materi_fs_v1';
+const FS_STORE = 'handles';
+const FS_HANDLE_KEY = 'lembarPantauDir';
+const LEMBAR_PANTAU_FOLDER_NAME = 'Lembar Pantau';
+
+const autoBackupSupported = typeof window.showDirectoryPicker === 'function';
+let lembarPantauDirHandle = null;
+let autoBackupStatus = 'idle'; // idle | connected | needs-permission | unsupported | error
+
+function openFsDb(){
+  return new Promise((resolve, reject) => {
+    try{
+      const req = indexedDB.open(FS_DB_NAME, 1);
+      req.onupgradeneeded = () => { req.result.createObjectStore(FS_STORE); };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    } catch(e){ reject(e); }
+  });
+}
+
+async function idbGetHandle(key){
+  try{
+    const db = await openFsDb();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(FS_STORE, 'readonly');
+      const req = tx.objectStore(FS_STORE).get(key);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+  } catch(e){ return null; }
+}
+
+async function idbSetHandle(key, value){
+  try{
+    const db = await openFsDb();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(FS_STORE, 'readwrite');
+      tx.objectStore(FS_STORE).put(value, key);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch(e){ return false; }
+}
+
+async function idbDeleteHandle(key){
+  try{
+    const db = await openFsDb();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(FS_STORE, 'readwrite');
+      tx.objectStore(FS_STORE).delete(key);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch(e){ return false; }
+}
+
+function updateAutoBackupUI(){
+  const btn = document.getElementById('autoBackupBtn');
+  const txt = document.getElementById('autoBackupStatusText');
+  if(!btn || !txt) return;
+  btn.classList.remove('ab-connected', 'ab-warn', 'ab-error');
+  if(autoBackupStatus === 'unsupported'){
+    txt.textContent = 'Tidak didukung browser ini';
+    btn.classList.add('ab-warn');
+  } else if(autoBackupStatus === 'connected'){
+    txt.textContent = `Aktif → ${LEMBAR_PANTAU_FOLDER_NAME}`;
+    btn.classList.add('ab-connected');
+  } else if(autoBackupStatus === 'needs-permission'){
+    txt.textContent = 'Perlu izin ulang (klik)';
+    btn.classList.add('ab-warn');
+  } else if(autoBackupStatus === 'error'){
+    txt.textContent = 'Gagal, klik untuk cek';
+    btn.classList.add('ab-error');
+  } else {
+    txt.textContent = 'Nonaktif (klik aktifkan)';
+  }
+}
+
+/* Tulis file backup .json terbaru ke folder "Lembar Pantau" yang sudah dihubungkan. Dipanggil otomatis tiap kali data tersimpan. */
+async function writeAutoBackup(){
+  if(!autoBackupSupported || !lembarPantauDirHandle) return;
+  try{
+    const perm = await lembarPantauDirHandle.queryPermission({ mode: 'readwrite' });
+    if(perm !== 'granted'){
+      autoBackupStatus = 'needs-permission';
+      updateAutoBackupUI();
+      return;
+    }
+    const payload = {
+      type: 'progres-materi-backup',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      identity: getIdentitySafe(),
+      data: data
+    };
+    const fileHandle = await lembarPantauDirHandle.getFileHandle('progres-materi-autobackup.json', { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(JSON.stringify(payload, null, 2));
+    await writable.close();
+    autoBackupStatus = 'connected';
+    updateAutoBackupUI();
+  } catch(e){
+    autoBackupStatus = 'error';
+    updateAutoBackupUI();
+  }
+}
+
+document.getElementById('autoBackupBtn').addEventListener('click', async () => {
+  if(!autoBackupSupported){
+    openConfirmModal(
+      'Auto-backup tidak didukung',
+      `Fitur ini memerlukan browser yang mendukung File System Access API, seperti <strong>Google Chrome</strong> atau <strong>Microsoft Edge</strong> di desktop/Android. Di browser ini, silakan gunakan tombol "Backup (.json)" secara manual lalu simpan filenya ke folder <strong>"${LEMBAR_PANTAU_FOLDER_NAME}"</strong>.`,
+      null
+    );
+    return;
+  }
+
+  if(autoBackupStatus === 'connected'){
+    openConfirmModal(
+      'Auto-Backup aktif',
+      `Setiap ada perubahan, data otomatis disimpan ke folder <strong>"${LEMBAR_PANTAU_FOLDER_NAME}"</strong> di perangkat ini. Putuskan koneksi ke folder ini?`,
+      async () => {
+        lembarPantauDirHandle = null;
+        await idbDeleteHandle(FS_HANDLE_KEY);
+        autoBackupStatus = 'idle';
+        updateAutoBackupUI();
+      },
+      { confirmLabel: 'Putuskan Folder' }
+    );
+    return;
+  }
+
+  if(autoBackupStatus === 'needs-permission' && lembarPantauDirHandle){
+    try{
+      const perm = await lembarPantauDirHandle.requestPermission({ mode: 'readwrite' });
+      if(perm === 'granted'){
+        autoBackupStatus = 'connected';
+        updateAutoBackupUI();
+        await writeAutoBackup();
+      } else {
+        openConfirmModal(
+          'Izin ditolak',
+          'Izin akses ke folder ini ditolak. Klik tombol "Auto-Backup" lagi untuk mencoba memberi izin, atau hubungkan folder baru.',
+          null
+        );
+      }
+    } catch(e){
+      openConfirmModal('Gagal meminta izin', 'Terjadi kesalahan saat meminta izin folder. Coba klik tombol ini lagi.', null);
+    }
+    return;
+  }
+
+  // Belum terhubung: minta pengguna pilih lokasi, lalu buat/buka subfolder "Lembar Pantau" otomatis.
+  try{
+    const rootHandle = await window.showDirectoryPicker();
+    const dirHandle = await rootHandle.getDirectoryHandle(LEMBAR_PANTAU_FOLDER_NAME, { create: true });
+    lembarPantauDirHandle = dirHandle;
+    await idbSetHandle(FS_HANDLE_KEY, dirHandle);
+    autoBackupStatus = 'connected';
+    updateAutoBackupUI();
+    await writeAutoBackup();
+    openConfirmModal(
+      'Auto-Backup aktif ✓',
+      `Folder <strong>"${LEMBAR_PANTAU_FOLDER_NAME}"</strong> berhasil dihubungkan (dibuat otomatis kalau belum ada). Mulai sekarang, setiap perubahan akan otomatis dibackup ke folder ini.`,
+      null
+    );
+  } catch(e){
+    if(e && e.name !== 'AbortError'){
+      openConfirmModal('Gagal menghubungkan folder', 'Terjadi kesalahan saat memilih folder. Coba lagi.', null);
+    }
+  }
+});
+
+/* Impor langsung dari file backup yang ada di folder "Lembar Pantau" (tanpa perlu memilih file manual) */
+async function importFromLembarPantau(){
+  if(!autoBackupSupported){
+    openConfirmModal(
+      'Tidak didukung',
+      `Fitur ini memerlukan browser yang mendukung File System Access API, seperti <strong>Google Chrome</strong> atau <strong>Microsoft Edge</strong> di desktop/Android. Silakan gunakan tombol "Restore (.json)" manual sebagai gantinya.`,
+      null
+    );
+    return;
+  }
+
+  if(!lembarPantauDirHandle){
+    openConfirmModal(
+      'Folder belum terhubung',
+      `Hubungkan folder <strong>"${LEMBAR_PANTAU_FOLDER_NAME}"</strong> dahulu lewat tombol "Auto-Backup" sebelum bisa mengimpor dari sana.`,
+      null
+    );
+    return;
+  }
+
+  try{
+    const perm = await lembarPantauDirHandle.queryPermission({ mode: 'read' });
+    if(perm !== 'granted'){
+      const req = await lembarPantauDirHandle.requestPermission({ mode: 'read' });
+      if(req !== 'granted'){
+        openConfirmModal('Izin ditolak', 'Izin membaca folder ini ditolak. Coba klik tombol ini lagi untuk memberi izin.', null);
+        return;
+      }
+    }
+
+    let fileHandle;
+    try{
+      fileHandle = await lembarPantauDirHandle.getFileHandle('progres-materi-autobackup.json');
+    } catch(e){
+      openConfirmModal(
+        'File tidak ditemukan',
+        `Belum ada file backup (<strong>progres-materi-autobackup.json</strong>) di folder "${LEMBAR_PANTAU_FOLDER_NAME}". Aktifkan dahulu Auto-Backup atau buat backup manual ke folder ini.`,
+        null
+      );
+      return;
+    }
+
+    const file = await fileHandle.getFile();
+    const text = await file.text();
+    let parsed;
+    try{
+      parsed = JSON.parse(text);
+    } catch(e){
+      openConfirmModal('Impor gagal', 'File backup di folder ini rusak atau bukan format JSON yang valid.', null);
+      return;
+    }
+
+    const importedRows = Array.isArray(parsed) ? parsed : parsed.data;
+    if(!Array.isArray(importedRows)){
+      openConfirmModal('Impor gagal', 'File ini bukan file backup yang valid (tidak ditemukan data materi).', null);
+      return;
+    }
+
+    openConfirmModal(
+      'Impor dari Lembar Pantau?',
+      `Ditemukan <strong>${importedRows.length} materi</strong> di file backup folder "${LEMBAR_PANTAU_FOLDER_NAME}" (terakhir diperbarui ${formatTime(file.lastModified)}). Mengimpor akan <strong>menggantikan semua data saat ini</strong>. Lanjutkan?`,
+      () => {
+        applyBackupPayload(parsed);
+      }
+    );
+  } catch(e){
+    openConfirmModal('Impor gagal', 'Terjadi kesalahan saat membaca file backup dari folder ini.', null);
+  }
+}
+
+document.getElementById('importLembarPantauBtn').addEventListener('click', importFromLembarPantau);
+
+(async function initAutoBackup(){
+  if(!autoBackupSupported){
+    autoBackupStatus = 'unsupported';
+    updateAutoBackupUI();
+    return;
+  }
+  const handle = await idbGetHandle(FS_HANDLE_KEY);
+  if(handle){
+    lembarPantauDirHandle = handle;
+    try{
+      const perm = await handle.queryPermission({ mode: 'readwrite' });
+      autoBackupStatus = perm === 'granted' ? 'connected' : 'needs-permission';
+    } catch(e){
+      autoBackupStatus = 'needs-permission';
+    }
+  } else {
+    autoBackupStatus = 'idle';
+  }
+  updateAutoBackupUI();
+  if(autoBackupStatus === 'connected'){
+    writeAutoBackup();
+  }
+})();
+
+function calcPersen(halaman, sisa){
+  const h = Number(halaman) || 0;
+  const s = Math.min(Math.max(Number(sisa) || 0, 0), h);
+  if(h <= 0) return 0;
+  return Math.round(((h - s) / h) * 1000) / 10;
+}
+
+/* Total halaman & sisa materi dihitung dari seluruh bab di dalamnya */
+function rowTotals(row){
+  let halaman = 0, sisa = 0;
+  (row.bab || []).forEach(b => {
+    const h = Number(b.halaman) || 0;
+    const s = Math.min(Math.max(Number(b.sisa) || 0, 0), h);
+    halaman += h;
+    sisa += s;
+  });
+  return { halaman, sisa };
+}
+
+function statusInfo(persen){
+  if(persen >= 100) return { cls: 'status-selesai', label: 'Selesai' };
+  if(persen > 0) return { cls: 'status-proses', label: 'Proses' };
+  return { cls: 'status-mulai', label: 'Belum mulai' };
+}
+
+function barColor(persen){
+  if(persen >= 100) return 'var(--good)';
+  if(persen >= 40) return 'var(--primary)';
+  return 'var(--warn)';
+}
+
+function formatTime(ts){
+  const d = new Date(ts);
+  return d.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }) + ' · ' +
+         d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+}
+
+/* ---------- Search & Filter ---------- */
+let searchQuery = '';
+let statusFilter = 'semua';
+
+function rowMatchesFilter(row){
+  const totals = rowTotals(row);
+  const persen = calcPersen(totals.halaman, totals.sisa);
+  const status = statusInfo(persen);
+  const statusKey = status.cls === 'status-selesai' ? 'selesai' : (status.cls === 'status-proses' ? 'proses' : 'mulai');
+  if(statusFilter !== 'semua' && statusFilter !== statusKey) return false;
+
+  if(searchQuery){
+    const q = searchQuery.toLowerCase();
+    const namaMatch = (row.nama || '').toLowerCase().includes(q);
+    const babMatch = (row.bab || []).some(b => (b.nama || '').toLowerCase().includes(q));
+    if(!namaMatch && !babMatch) return false;
+  }
+  return true;
+}
+
+/* ---------- Sorting ---------- */
+let sortMode = 'manual';
+
+function sortVisible(rows){
+  const arr = rows.slice();
+  switch(sortMode){
+    case 'nama-asc':
+      arr.sort((a, b) => (a.nama || '').localeCompare(b.nama || '', 'id'));
+      break;
+    case 'nama-desc':
+      arr.sort((a, b) => (b.nama || '').localeCompare(a.nama || '', 'id'));
+      break;
+    case 'progres-desc':
+    case 'progres-asc': {
+      const withPersen = arr.map(r => {
+        const t = rowTotals(r);
+        return { r, p: calcPersen(t.halaman, t.sisa) };
+      });
+      withPersen.sort((a, b) => sortMode === 'progres-desc' ? b.p - a.p : a.p - b.p);
+      return withPersen.map(x => x.r);
+    }
+    case 'deadline':
+      arr.sort((a, b) => {
+        if(!a.deadline && !b.deadline) return 0;
+        if(!a.deadline) return 1;
+        if(!b.deadline) return -1;
+        return a.deadline.localeCompare(b.deadline);
+      });
+      break;
+    case 'update':
+      arr.sort((a, b) => (lastActivityTime(b) || 0) - (lastActivityTime(a) || 0));
+      break;
+    default:
+      break; // manual: keep data order as-is
+  }
+  return arr;
+}
+
+/* ---------- Full render (structure) ---------- */
+function render(){
+  const list = document.getElementById('materiList');
+  const empty = document.getElementById('emptyState');
+  list.innerHTML = '';
+  list.classList.toggle('sort-manual', sortMode === 'manual');
+  list.classList.toggle('select-mode', selectMode);
+
+  let visible = data.filter(rowMatchesFilter);
+  visible = sortVisible(visible);
+  const noResultButHasData = data.length > 0 && visible.length === 0;
+  empty.style.display = data.length === 0 ? 'block' : 'none';
+  empty.querySelector('.title').textContent = noResultButHasData ? 'Tidak ada hasil' : 'Belum ada materi';
+  empty.querySelector('.desc').textContent = noResultButHasData
+    ? 'Coba ubah kata kunci pencarian atau filter status.'
+    : 'Klik "Tambah Materi" untuk mulai mencatat progres.';
+  if(noResultButHasData) empty.style.display = 'block';
+
+  visible.forEach((row) => {
+    const card = buildCard(row);
+    if(selectMode && selectedIds.has(row.id)) card.querySelector('.select-checkbox-input').checked = true;
+    list.appendChild(card);
+  });
+
+  updateSummary();
+  updateBulkBar();
+}
+
+const sortSelectEl = document.getElementById('sortSelect');
+sortSelectEl.addEventListener('change', () => {
+  sortMode = sortSelectEl.value;
+  render();
+});
+
+const searchInputEl = document.getElementById('searchInput');
+if(searchInputEl){
+  searchInputEl.addEventListener('input', () => {
+    searchQuery = searchInputEl.value.trim();
+    render();
+  });
+}
+document.querySelectorAll('.filter-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    statusFilter = chip.dataset.filter;
+    render();
+  });
+});
+
+function buildCard(row){
+  const totals = rowTotals(row);
+  const persen = calcPersen(totals.halaman, totals.sisa);
+  const status = statusInfo(persen);
+  const jumlahBab = (row.bab || []).length;
+
+  const card = document.createElement('div');
+  card.className = 'materi-card';
+  card.dataset.id = row.id;
+
+  card.innerHTML = `
+    <div class="materi-card-row">
+    <span class="drag-handle" title="Seret untuk mengatur ulang urutan" draggable="true">⠿</span>
+    <span class="select-checkbox">
+      <input type="checkbox" class="select-checkbox-input" title="Pilih materi ini">
+    </span>
+    <div class="materi-main-wrap">
+    <div class="materi-main">
+      <div>
+        <div class="field-label">Nama Materi</div>
+        <input type="text" class="inp-nama" value="${escapeHtml(row.nama)}" placeholder="Nama materi...">
+      </div>
+      <div>
+        <div class="field-label">Halaman<span class="bab-count-tag">${jumlahBab} bab</span></div>
+        <div class="readonly-val val-halaman" title="Total dihitung otomatis dari seluruh bab">${totals.halaman}</div>
+      </div>
+      <div>
+        <div class="field-label">Terisi</div>
+        <div class="readonly-val val-terisi" title="Halaman - Belum Terisi">${totals.halaman - totals.sisa}</div>
+      </div>
+      <div>
+        <div class="field-label">Belum Terisi</div>
+        <div class="readonly-val val-sisa" title="Total dihitung otomatis dari seluruh bab">${totals.sisa}</div>
+      </div>
+      <div class="progress-cell">
+        <div class="bar-bg"><div class="bar-fill" style="width:${persen}%; background:${barColor(persen)};"></div></div>
+        <span class="persen-label">${persen}%</span>
+        <span class="status-pill ${status.cls}">${status.label}</span>
+      </div>
+      <button type="button" class="confirm-btn" title="Simpan progres saat ini ke riwayat">Konfirmasi</button>
+      <div class="action-group">
+        <button type="button" class="icon-btn bab-toggle" title="Kelola bab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </button>
+        <button type="button" class="icon-btn history-toggle" title="Lihat riwayat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>
+        </button>
+        <button type="button" class="icon-btn danger del-card" title="Hapus materi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+      </div>
+    </div>
+    </div>
+    </div>
+    <div class="badge-row"></div>
+    <div class="bab-panel ${row.babOpen ? 'open' : ''}"></div>
+    <div class="history-panel ${row.historyOpen ? 'open' : ''}"></div>
+  `;
+
+  bindCardEvents(card, row);
+  renderBabPanel(card, row);
+  renderHistoryPanel(card, row);
+  renderBadgeRow(card, row, persen);
+  return card;
+}
+
+/* ---------- Badge: deadline & progres stagnan ---------- */
+function daysBetween(a, b){
+  return Math.round((a - b) / 86400000);
+}
+
+function lastActivityTime(row){
+  if(row.history && row.history.length){
+    return row.history[row.history.length - 1].time;
+  }
+  return null;
+}
+
+function renderBadgeRow(card, row, persen){
+  const wrap = card.querySelector('.badge-row');
+  wrap.innerHTML = '';
+  const badges = [];
+
+  // Badge deadline
+  if(row.deadline){
+    const target = new Date(row.deadline + 'T23:59:59').getTime();
+    const sisaHari = daysBetween(target, Date.now());
+    if(persen >= 100){
+      // selesai, tak perlu badge deadline
+    } else if(sisaHari < 0){
+      badges.push({ cls: 'b-bad', text: `⏰ Lewat deadline ${Math.abs(sisaHari)} hari` });
+    } else if(sisaHari <= 3){
+      badges.push({ cls: 'b-warn', text: sisaHari === 0 ? '⏰ Deadline hari ini' : `⏰ ${sisaHari} hari lagi` });
+    } else {
+      badges.push({ cls: 'b-neutral', text: `Deadline: ${formatDateOnly(row.deadline)}` });
+    }
+  }
+  const setDeadlineBadge = document.createElement('button');
+  setDeadlineBadge.type = 'button';
+  setDeadlineBadge.className = 'mini-badge b-neutral';
+  setDeadlineBadge.style.cursor = 'pointer';
+  setDeadlineBadge.style.border = 'none';
+  setDeadlineBadge.textContent = row.deadline ? '✏️ Ubah deadline' : '+ Set deadline';
+  setDeadlineBadge.addEventListener('click', () => {
+    openDeadlinePrompt(row, () => renderBadgeRow(card, row, persen));
+  });
+
+  // Badge stagnan (>3 hari tanpa konfirmasi & belum selesai)
+  if(persen < 100){
+    const last = lastActivityTime(row);
+    const refTime = last || null;
+    if(refTime){
+      const idle = daysBetween(Date.now(), refTime);
+      if(idle >= 3){
+        badges.push({ cls: 'b-warn', text: `😴 Stagnan ${idle} hari (belum dikonfirmasi)` });
+      }
+    }
+  }
+
+  badges.forEach(b => {
+    const el = document.createElement('span');
+    el.className = 'mini-badge ' + b.cls;
+    el.textContent = b.text;
+    wrap.appendChild(el);
+  });
+  wrap.appendChild(setDeadlineBadge);
+}
+
+function formatDateOnly(iso){
+  if(!iso) return '';
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function openDeadlinePrompt(row, onDone){
+  modalTitleEl.textContent = 'Atur deadline materi';
+  modalDescEl.innerHTML = `
+    <label style="display:block; font-size:12px; font-weight:700; color:var(--ink-soft); margin-bottom:6px;">Tanggal deadline</label>
+    <input type="date" id="deadlineDateInput" style="width:100%; padding:9px 10px; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:13.5px; background:var(--surface); color:var(--ink);" value="${row.deadline || ''}">
+  `;
+  pendingConfirmAction = () => {
+    const val = document.getElementById('deadlineDateInput').value;
+    row.deadline = val || '';
+    save();
+    if(typeof onDone === 'function') onDone();
+  };
+  modalConfirmBtn.textContent = 'Simpan';
+  modalConfirmBtn.classList.remove('btn-confirm-danger');
+  modalConfirmBtn.classList.add('btn-confirm-primary');
+  modalCancelBtn.style.display = '';
+  modalOverlay.classList.add('open');
+}
+
+function bindCardEvents(card, row){
+  const inpNama = card.querySelector('.inp-nama');
+  const confirmBtn = card.querySelector('.confirm-btn');
+  const babToggle = card.querySelector('.bab-toggle');
+  const historyToggle = card.querySelector('.history-toggle');
+  const delBtn = card.querySelector('.del-card');
+
+  inpNama.addEventListener('input', () => {
+    row.nama = inpNama.value;
+    save();
+  });
+
+  confirmBtn.addEventListener('click', () => {
+    const totals = rowTotals(row);
+    row.history.push({
+      id: cryptoId(),
+      time: Date.now(),
+      sisa: totals.sisa,
+      belumHalaman: getUnfilledSummary(row)
+    });
+    row.historyOpen = true;
+    save();
+    const panel = card.querySelector('.history-panel');
+    panel.classList.add('open');
+    renderHistoryPanel(card, row);
+    confirmBtn.classList.add('just-confirmed');
+    confirmBtn.textContent = 'Tersimpan ✓';
+    setTimeout(() => { confirmBtn.textContent = 'Konfirmasi'; }, 1200);
+  });
+
+  babToggle.addEventListener('click', () => {
+    row.babOpen = !row.babOpen;
+    save();
+    const panel = card.querySelector('.bab-panel');
+    panel.classList.toggle('open', row.babOpen);
+  });
+
+  historyToggle.addEventListener('click', () => {
+    row.historyOpen = !row.historyOpen;
+    save();
+    const panel = card.querySelector('.history-panel');
+    panel.classList.toggle('open', row.historyOpen);
+  });
+
+  delBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const namaTampil = escapeHtml(row.nama || '(tanpa nama)');
+    openConfirmModal(
+      'Hapus materi ini?',
+      `Materi <strong>"${namaTampil}"</strong> beserta seluruh bab dan riwayatnya akan dihapus secara permanen.`,
+      () => {
+        card.classList.add('removing');
+        setTimeout(() => {
+          deleteWithUndo('Materi dihapus.', () => {
+            data = data.filter(r => r.id !== row.id);
+          });
+        }, 260);
+      }
+    );
+  });
+}
+
+/* Update visual progres materi (total dari bab) tanpa render ulang seluruh kartu */
+function celebrateCard(card){
+  const colors = ['#5b5bf0', '#19a463', '#d98c1c', '#e5484d', '#22c55e'];
+  for(let i = 0; i < 16; i++){
+    const piece = document.createElement('span');
+    piece.className = 'confetti-piece';
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 50 + Math.random() * 60;
+    piece.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+    piece.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+    piece.style.setProperty('--rot', (Math.random() * 360 - 180) + 'deg');
+    piece.style.background = colors[i % colors.length];
+    piece.style.left = (25 + Math.random() * 50) + '%';
+    piece.style.borderRadius = Math.random() > .5 ? '50%' : '2px';
+    card.appendChild(piece);
+    setTimeout(() => piece.remove(), 750);
+  }
+}
+
+function updateCardProgress(card, row){
+  const totals = rowTotals(row);
+  const persen = calcPersen(totals.halaman, totals.sisa);
+  const status = statusInfo(persen);
+  const wasSelesai = card.querySelector('.status-pill').classList.contains('status-selesai');
+  card.querySelector('.val-halaman').textContent = totals.halaman;
+  card.querySelector('.val-terisi').textContent = totals.halaman - totals.sisa;
+  card.querySelector('.val-sisa').textContent = totals.sisa;
+  card.querySelector('.bab-count-tag').textContent = `${(row.bab || []).length} bab`;
+  card.querySelector('.bar-fill').style.width = persen + '%';
+  card.querySelector('.bar-fill').style.background = barColor(persen);
+  const persenLabel = card.querySelector('.persen-label');
+  const newPersenText = persen + '%';
+  if(persenLabel.textContent !== newPersenText){
+    persenLabel.textContent = newPersenText;
+    persenLabel.classList.remove('pulse');
+    void persenLabel.offsetWidth;
+    persenLabel.classList.add('pulse');
+  }
+  const pill = card.querySelector('.status-pill');
+  pill.className = 'status-pill ' + status.cls;
+  pill.textContent = status.label;
+  if(!wasSelesai && status.cls === 'status-selesai'){
+    celebrateCard(card);
+  }
+  updateSummary();
+}
+
+/* ---------- Panel Bab (chapter) ---------- */
+function renderBabPanel(card, row){
+  const panel = card.querySelector('.bab-panel');
+  const babList = row.bab || [];
+
+  let rows = babList.map((b) => {
+    const persen = calcPersen(b.halaman, b.sisa);
+    const terisi = (Number(b.halaman) || 0) - Math.min(Math.max(Number(b.sisa) || 0, 0), Number(b.halaman) || 0);
+    return `
+      <tr data-bid="${b.id}">
+        <td><input type="text" class="bab-nama-input" placeholder="Nama bab..." value="${escapeHtml(b.nama)}"></td>
+        <td><input type="number" min="0" class="bab-num-input bab-halaman-input" value="${b.halaman}"></td>
+        <td><input type="number" min="0" class="bab-num-input bab-terisi-input" value="${terisi}"></td>
+        <td><input type="number" min="0" class="bab-num-input bab-sisa-input" value="${b.sisa}"></td>
+        <td>
+          <div class="bab-progress-cell">
+            <div class="bab-bar-bg"><div class="bab-bar-fill" style="width:${persen}%; background:${barColor(persen)};"></div></div>
+            <span class="bab-persen-mini">${persen}%</span>
+          </div>
+        </td>
+        <td style="text-align:right; white-space:nowrap;">
+          <button type="button" class="icon-btn bab-pages-btn" title="Lihat halaman yang belum terisi">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h4"/><path d="M9 11V5a2 2 0 0 1 2-2h6l4 4v12a2 2 0 0 1-2 2h-9"/><path d="M9 7h2"/><path d="M13 15h4"/><path d="M13 19h4"/></svg>
+          </button>
+          <button type="button" class="history-del bab-del" title="Hapus bab">✕</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  const emptyRow = babList.length === 0
+    ? `<div class="history-empty">Belum ada bab. Klik "+ Tambah Bab" untuk mulai.</div>`
+    : `
+      <div class="bab-table-wrap">
+        <table class="bab-table">
+          <thead>
+            <tr><th>Nama Bab</th><th>Halaman</th><th>Terisi</th><th>Belum Terisi</th><th>Presentasi</th><th></th></tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      <div class="bab-scroll-hint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l-6-6 6-6"/><path d="M15 6l6 6-6 6"/></svg>
+        Geser tabel untuk lihat kolom lainnya
+      </div>
+    `;
+
+  panel.innerHTML = `
+    <div class="history-head"><h4>Bab (${babList.length})</h4></div>
+    ${emptyRow}
+    <button type="button" class="bab-add-row">+ Tambah Bab</button>
+  `;
+
+  panel.querySelectorAll('tr[data-bid]').forEach(tr => {
+    const bid = tr.dataset.bid;
+    const bEntry = babList.find(b => b.id === bid);
+
+    const namaInput = tr.querySelector('.bab-nama-input');
+    namaInput.addEventListener('input', () => {
+      bEntry.nama = namaInput.value;
+      save();
+    });
+
+    const terisiInput = tr.querySelector('.bab-terisi-input');
+
+    const halamanInput = tr.querySelector('.bab-halaman-input');
+    halamanInput.addEventListener('input', () => {
+      const v = halamanInput.value === '' ? 0 : Number(halamanInput.value);
+      bEntry.halaman = v;
+      // Jaga agar sisa tidak melebihi halaman baru
+      bEntry.sisa = Math.min(Math.max(Number(bEntry.sisa) || 0, 0), v);
+      syncFilledCount(bEntry, v - bEntry.sisa);
+      save();
+      const persen = calcPersen(bEntry.halaman, bEntry.sisa);
+      const terisi = bEntry.halaman - bEntry.sisa;
+      tr.querySelector('.bab-persen-mini').textContent = persen + '%';
+      tr.querySelector('.bab-bar-fill').style.width = persen + '%';
+      tr.querySelector('.bab-bar-fill').style.background = barColor(persen);
+      terisiInput.value = terisi;
+      sisaInput.value = bEntry.sisa;
+      updateCardProgress(card, row);
+    });
+
+    var sisaInput = tr.querySelector('.bab-sisa-input');
+    sisaInput.addEventListener('input', () => {
+      const v = sisaInput.value === '' ? 0 : Math.min(Math.max(Number(sisaInput.value) || 0, 0), Number(bEntry.halaman) || 0);
+      bEntry.sisa = v;
+      syncFilledCount(bEntry, (Number(bEntry.halaman) || 0) - v);
+      save();
+      const persen = calcPersen(bEntry.halaman, bEntry.sisa);
+      const terisi = bEntry.halaman - bEntry.sisa;
+      tr.querySelector('.bab-persen-mini').textContent = persen + '%';
+      tr.querySelector('.bab-bar-fill').style.width = persen + '%';
+      tr.querySelector('.bab-bar-fill').style.background = barColor(persen);
+      terisiInput.value = terisi;
+      updateCardProgress(card, row);
+    });
+
+    terisiInput.addEventListener('input', () => {
+      const h = Number(bEntry.halaman) || 0;
+      const v = terisiInput.value === '' ? 0 : Math.min(Math.max(Number(terisiInput.value) || 0, 0), h);
+      bEntry.sisa = h - v;
+      syncFilledCount(bEntry, v);
+      save();
+      const persen = calcPersen(bEntry.halaman, bEntry.sisa);
+      tr.querySelector('.bab-persen-mini').textContent = persen + '%';
+      tr.querySelector('.bab-bar-fill').style.width = persen + '%';
+      tr.querySelector('.bab-bar-fill').style.background = barColor(persen);
+      sisaInput.value = bEntry.sisa;
+      updateCardProgress(card, row);
+    });
+
+    tr.querySelector('.bab-pages-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openPagesModal(card, row, bEntry, tr);
+    });
+
+    tr.querySelector('.bab-del').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const namaBabTampil = escapeHtml(bEntry.nama || '(tanpa nama)');
+      openConfirmModal(
+        'Hapus bab ini?',
+        `Bab <strong>"${namaBabTampil}"</strong> akan dihapus secara permanen dari materi ini.`,
+        () => {
+          pushUndoSnapshot();
+          const snap = undoStack[undoStack.length - 1];
+          row.bab = row.bab.filter(item => item.id !== bid);
+          if(row.bab.length === 0){
+            row.bab = [{ id: cryptoId(), nama: 'Bab 1', halaman: 0, sisa: 0 }];
+          }
+          save();
+          renderBabPanel(card, row);
+          updateCardProgress(card, row);
+          showToast('Bab dihapus.', 'Urungkan', () => { data = snap; save(); render(); });
+        }
+      );
+    });
+  });
+
+  const addBtn = panel.querySelector('.bab-add-row');
+  addBtn.addEventListener('click', () => {
+    const newBab = { id: cryptoId(), nama: `Bab ${babList.length + 1}`, halaman: 0, sisa: 0 };
+    row.bab.push(newBab);
+    save();
+    renderBabPanel(card, row);
+    updateCardProgress(card, row);
+    const newInput = panel.querySelector(`tr[data-bid="${newBab.id}"] .bab-nama-input`);
+    newInput?.focus();
+  });
+}
+
+function renderHistoryPanel(card, row){
+  const panel = card.querySelector('.history-panel');
+  const totals = rowTotals(row);
+  if(row.history.length === 0){
+    panel.innerHTML = `<div class="history-head"><h4>Riwayat Konfirmasi</h4></div>
+      <div class="history-empty">Belum ada riwayat. Klik "Konfirmasi" untuk menyimpan progres saat ini.</div>`;
+    return;
+  }
+
+  const sorted = [...row.history].sort((a, b) => b.time - a.time);
+
+  let rows = sorted.map(h => {
+    const persen = calcPersen(totals.halaman, h.sisa);
+    const belumHalaman = Array.isArray(h.belumHalaman) ? h.belumHalaman : null;
+    let belumHtml;
+    if(!belumHalaman){
+      belumHtml = '<span style="color:var(--ink-faint);">—</span>';
+    } else if(belumHalaman.length === 0){
+      belumHtml = '<span style="color:var(--good);font-weight:600;">Semua terisi 🎉</span>';
+    } else {
+      belumHtml = `<div class="history-pages-summary">${belumHalaman.map(b => `<div class="hps-row"><span class="hps-nama">${escapeHtml(b.nama)}</span><span class="hps-pages">${b.pages.join(', ')}</span></div>`).join('')}</div>`;
+    }
+    return `
+      <tr data-hid="${h.id}">
+        <td class="h-time">${formatTime(h.time)}</td>
+        <td><input type="number" min="0" class="history-sisa-input" value="${h.sisa}"></td>
+        <td class="history-persen-mini">${persen}%</td>
+        <td class="history-pages-cell">${belumHtml}</td>
+        <td style="text-align:right;"><button type="button" class="history-del" title="Hapus entri">✕</button></td>
+      </tr>
+    `;
+  }).join('');
+
+  panel.innerHTML = `
+    <div class="history-head"><h4>Riwayat Konfirmasi (${row.history.length})</h4></div>
+    <div class="bab-table-wrap">
+      <table class="history-table">
+        <thead>
+          <tr><th>Waktu</th><th>Belum Terisi</th><th>Presentasi</th><th>Daftar Halaman Belum Terisi</th><th></th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+
+  panel.querySelectorAll('tr[data-hid]').forEach(tr => {
+    const hid = tr.dataset.hid;
+    const hEntry = row.history.find(h => h.id === hid);
+
+    const sisaInput = tr.querySelector('.history-sisa-input');
+    sisaInput.addEventListener('input', () => {
+      let v = sisaInput.value === '' ? 0 : Number(sisaInput.value);
+      hEntry.sisa = v;
+      save();
+      const t = rowTotals(row);
+      const persen = calcPersen(t.halaman, hEntry.sisa);
+      tr.querySelector('.history-persen-mini').textContent = persen + '%';
+    });
+
+    tr.querySelector('.history-del').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openConfirmModal(
+        'Hapus entri riwayat?',
+        `Entri riwayat pada <strong>${formatTime(hEntry.time)}</strong> akan dihapus secara permanen.`,
+        () => {
+          pushUndoSnapshot();
+          const snap = undoStack[undoStack.length - 1];
+          row.history = row.history.filter(item => item.id !== hid);
+          save();
+          renderHistoryPanel(card, row);
+          showToast('Entri riwayat dihapus.', 'Urungkan', () => { data = snap; save(); render(); });
+        }
+      );
+    });
+  });
+}
+
+function updateSummary(){
+  let totalHalaman = 0, totalSisa = 0;
+  data.forEach(row => {
+    const t = rowTotals(row);
+    totalHalaman += t.halaman;
+    totalSisa += t.sisa;
+  });
+  const totalPersen = totalHalaman > 0
+    ? Math.round(((totalHalaman - totalSisa) / totalHalaman) * 1000) / 10
+    : 0;
+
+  const circumference = 2 * Math.PI * 22; // r=22
+  const offset = circumference - (totalPersen / 100) * circumference;
+  const ringFill = document.getElementById('ringFill');
+  ringFill.setAttribute('stroke-dasharray', circumference.toFixed(1));
+  ringFill.setAttribute('stroke-dashoffset', offset.toFixed(1));
+
+  const ringTextEl = document.getElementById('ringText');
+  const newRingText = Math.round(totalPersen) + '%';
+  if(ringTextEl.textContent !== newRingText){
+    ringTextEl.textContent = newRingText;
+    ringTextEl.classList.remove('pulse');
+    void ringTextEl.offsetWidth;
+    ringTextEl.classList.add('pulse');
+  }
+  document.getElementById('summaryFraction').textContent =
+    `${totalHalaman - totalSisa} / ${totalHalaman} halaman`;
+}
+
+function escapeHtml(str){
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+document.getElementById('addRow').addEventListener('click', () => {
+  const newRow = {
+    id: cryptoId(),
+    nama: '',
+    historyOpen: false,
+    babOpen: true,
+    bab: [{ id: cryptoId(), nama: 'Bab 1', halaman: 0, sisa: 0 }],
+    history: []
+  };
+  data.push(newRow);
+  save();
+  render();
+  const card = document.querySelector(`.materi-card[data-id="${newRow.id}"]`);
+  card?.querySelector('.inp-nama')?.focus();
+  if(typeof card?.scrollIntoView === 'function'){
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  const resetBtnEl = document.getElementById('resetBtn');
+  if(data.length === 0){
+    resetBtnEl.disabled = true;
+    setTimeout(() => { resetBtnEl.disabled = false; }, 600);
+    return;
+  }
+  openConfirmModal(
+    'Hapus semua materi?',
+    `Seluruh <strong>${data.length} materi</strong> beserta bab dan riwayatnya akan dihapus secara permanen dari daftar ini.`,
+    () => {
+      deleteWithUndo('Semua materi dihapus.', () => {
+        data = [];
+      });
+    }
+  );
+});
+
+/* ---------- Ekspor CSV (nama file bisa diedit sebelum diunduh) ---------- */
+const exportModalOverlay = document.getElementById('exportModal');
+const exportFilenameInput = document.getElementById('exportFilenameInput');
+const exportCancelBtn = document.getElementById('exportCancelBtn');
+const exportConfirmBtn = document.getElementById('exportConfirmBtn');
+
+function defaultExportFilename(){
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `progres-materi-${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`;
+}
+
+/* Membersihkan nama file dari karakter yang tidak valid untuk filesystem */
+function sanitizeFilename(name){
+  const cleaned = String(name || '')
+    .trim()
+    .replace(/[\\/:*?"<>|]/g, '-')   // karakter terlarang di Windows/Android
+    .replace(/\s+/g, ' ')
+    .slice(0, 120);
+  return cleaned || defaultExportFilename();
+}
+
+function openExportModal(){
+  exportFilenameInput.value = defaultExportFilename();
+  exportModalOverlay.classList.add('open');
+  setTimeout(() => {
+    exportFilenameInput.focus();
+    exportFilenameInput.select();
+  }, 50);
+}
+
+function closeExportModal(){
+  exportModalOverlay.classList.remove('open');
+}
+
+function performCsvExport(){
+  const filename = sanitizeFilename(exportFilenameInput.value);
+
+  let csv = 'Materi,Bab,Halaman,Terisi,Belum Terisi,Presentasi (%)\n';
+  data.forEach(row => {
+    const totals = rowTotals(row);
+    const persenMateri = calcPersen(totals.halaman, totals.sisa);
+    const namaMateri = `"${String(row.nama).replace(/"/g, '""')}"`;
+    csv += `${namaMateri},"(Total)",${totals.halaman},${totals.halaman - totals.sisa},${totals.sisa},${persenMateri}\n`;
+    (row.bab || []).forEach(b => {
+      const persenBab = calcPersen(b.halaman, b.sisa);
+      const h = Number(b.halaman) || 0;
+      const s = Math.min(Math.max(Number(b.sisa) || 0, 0), h);
+      const namaBab = `"${String(b.nama).replace(/"/g, '""')}"`;
+      csv += `,${namaBab},${h},${h - s},${s},${persenBab}\n`;
+    });
+  });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${filename}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  closeExportModal();
+  if(typeof toast === 'function') toast(`File "${filename}.csv" berhasil diunduh`, 'success');
+}
+
+document.getElementById('exportBtn').addEventListener('click', openExportModal);
+exportCancelBtn.addEventListener('click', closeExportModal);
+exportConfirmBtn.addEventListener('click', performCsvExport);
+exportModalOverlay.addEventListener('click', (e) => {
+  if(e.target === exportModalOverlay) closeExportModal();
+});
+exportFilenameInput.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){ e.preventDefault(); performCsvExport(); }
+});
+
+/* ---------- Impor CSV ---------- */
+const importBtn = document.getElementById('importBtn');
+const importFileEl = document.getElementById('importFile');
+
+importBtn.addEventListener('click', () => {
+  importFileEl.value = '';
+  importFileEl.click();
+});
+
+/* Parser CSV sederhana yang mendukung tanda kutip dan koma di dalam field */
+function parseCsvText(text){
+  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.length > 0);
+  return lines.map(line => {
+    const cols = [];
+    let cur = '';
+    let inQuotes = false;
+    for(let i = 0; i < line.length; i++){
+      const ch = line[i];
+      if(inQuotes){
+        if(ch === '"'){
+          if(line[i + 1] === '"'){ cur += '"'; i++; }
+          else { inQuotes = false; }
+        } else {
+          cur += ch;
+        }
+      } else {
+        if(ch === '"'){ inQuotes = true; }
+        else if(ch === ','){ cols.push(cur); cur = ''; }
+        else { cur += ch; }
+      }
+    }
+    cols.push(cur);
+    return cols;
+  });
+}
+
+importFileEl.addEventListener('change', () => {
+  const file = importFileEl.files && importFileEl.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const rows = parseCsvText(String(reader.result));
+      if(rows.length === 0){
+        openConfirmModal('Impor gagal', 'File CSV kosong atau tidak terbaca.', null);
+        return;
+      }
+
+      const header = rows[0].map(h => h.trim().toLowerCase());
+      const idxMateri = header.indexOf('materi');
+      const idxBab = header.indexOf('bab');
+      const idxHalaman = header.indexOf('halaman');
+      const idxSisa = header.indexOf('belum terisi');
+
+      if(idxMateri === -1 || idxBab === -1 || idxHalaman === -1 || idxSisa === -1){
+        openConfirmModal(
+          'Format CSV tidak dikenali',
+          'Pastikan file CSV memiliki kolom <strong>Materi, Bab, Halaman, Belum Terisi</strong> (sesuai hasil "Ekspor CSV").',
+          null
+        );
+        return;
+      }
+
+      const imported = [];
+      let currentMateri = null;
+
+      rows.slice(1).forEach(cols => {
+        const namaMateri = (cols[idxMateri] || '').trim();
+        const namaBab = (cols[idxBab] || '').trim();
+        const halaman = Number(cols[idxHalaman]) || 0;
+        const sisa = Number(cols[idxSisa]) || 0;
+
+        if(namaMateri !== ''){
+          currentMateri = {
+            id: cryptoId(),
+            nama: namaMateri,
+            historyOpen: false,
+            babOpen: false,
+            history: [],
+            bab: []
+          };
+          imported.push(currentMateri);
+          // Baris "(Total)" hanya ringkasan, jangan dijadikan bab.
+          if(namaBab.toLowerCase() === '(total)') return;
+        }
+
+        if(!currentMateri) return;
+        if(namaBab !== '' && namaBab.toLowerCase() !== '(total)'){
+          currentMateri.bab.push({ id: cryptoId(), nama: namaBab, halaman, sisa });
+        }
+      });
+
+      // Materi tanpa bab (misal CSV format lama) diberi 1 bab otomatis.
+      imported.forEach(m => {
+        if(m.bab.length === 0){
+          m.bab.push({ id: cryptoId(), nama: 'Bab 1', halaman: 0, sisa: 0 });
+        }
+      });
+
+      if(imported.length === 0){
+        openConfirmModal('Impor gagal', 'Tidak ada baris materi yang valid ditemukan di file CSV.', null);
+        return;
+      }
+
+      openConfirmModal(
+        'Impor data CSV?',
+        `Ditemukan <strong>${imported.length} materi</strong> di file ini. Mengimpor akan <strong>menggantikan semua data saat ini</strong>. Lanjutkan?`,
+        () => {
+          pushUndoSnapshot();
+          data = imported.map(normalizeRow);
+          save();
+          render();
+        }
+      );
+    } catch(err){
+      openConfirmModal('Impor gagal', 'Terjadi kesalahan saat membaca file CSV. Pastikan formatnya benar.', null);
+    }
+  };
+  reader.onerror = () => {
+    openConfirmModal('Impor gagal', 'File tidak dapat dibaca.', null);
+  };
+  reader.readAsText(file, 'utf-8');
+});
+
+/* ---------- Backup & Restore JSON (file lengkap, termasuk riwayat & identitas) ---------- */
+const backupBtn = document.getElementById('backupBtn');
+const restoreBtn = document.getElementById('restoreBtn');
+const restoreFileEl = document.getElementById('restoreFile');
+
+function getIdentitySafe(){
+  try{
+    return JSON.parse(safeGetStorage(STORAGE_KEY_IDENTITY) || '{}');
+  } catch(e){
+    return {};
+  }
+}
+
+backupBtn.addEventListener('click', () => {
+  const payload = {
+    type: 'progres-materi-backup',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    identity: getIdentitySafe(),
+    data: data
+  };
+
+  // Simpan otomatis ke "Folder Backup" di dalam aplikasi (tersimpan di perangkat ini).
+  addToBackupFolder(payload, 'Backup manual');
+
+  // Tetap unduh file .json seperti biasa, untuk disimpan di luar aplikasi (HP/komputer/cloud).
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const stamp = new Date().toISOString().slice(0, 10);
+  a.download = `progres-materi-backup-${stamp}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  setSaveStatus('saved');
+});
+
+restoreBtn.addEventListener('click', () => {
+  restoreFileEl.value = '';
+  restoreFileEl.click();
+});
+
+restoreFileEl.addEventListener('change', () => {
+  const file = restoreFileEl.files && restoreFileEl.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const parsed = JSON.parse(String(reader.result));
+      // Terima 2 bentuk: { data: [...] , identity: {...} } ATAU langsung array data lama.
+      const importedRows = Array.isArray(parsed) ? parsed : parsed.data;
+      if(!Array.isArray(importedRows)){
+        openConfirmModal('Restore gagal', 'File .json ini bukan file backup yang valid (tidak ditemukan data materi).', null);
+        return;
+      }
+
+      openConfirmModal(
+        'Restore data dari backup?',
+        `Ditemukan <strong>${importedRows.length} materi</strong> di file backup ini (lengkap dengan bab &amp; riwayat). Mengimpor akan <strong>menggantikan semua data saat ini</strong>. Lanjutkan?`,
+        () => {
+          applyBackupPayload(parsed);
+        }
+      );
+    } catch(err){
+      openConfirmModal('Restore gagal', 'Terjadi kesalahan saat membaca file .json. Pastikan file ini adalah hasil "Backup (.json)" dari aplikasi ini.', null);
+    }
+  };
+  reader.onerror = () => {
+    openConfirmModal('Restore gagal', 'File tidak dapat dibaca.', null);
+  };
+  reader.readAsText(file, 'utf-8');
+});
+
+/* ---------- Identity: Nama & Kelas ---------- */
+(function initIdentity(){
+  const namEl = document.getElementById('identityNama');
+  const kelEl = document.getElementById('identityKelas');
+
+  // Load saved identity
+  try{
+    const saved = JSON.parse(safeGetStorage(STORAGE_KEY_IDENTITY) || '{}');
+    if(saved.nama) namEl.value = saved.nama;
+    if(saved.kelas) kelEl.value = saved.kelas;
+  } catch(e){}
+
+  function saveIdentity(){
+    safeSetStorage(STORAGE_KEY_IDENTITY, JSON.stringify({
+      nama: namEl.value,
+      kelas: kelEl.value
+    }));
+  }
+
+  namEl.addEventListener('input', saveIdentity);
+  kelEl.addEventListener('input', saveIdentity);
+})();
+
+/* ================= FITUR BARU ================= */
+
+/* ---------- 1. Dark Mode ---------- */
+const THEME_KEY = 'kp_theme_v1';
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  const btn = document.getElementById('themeToggleBtn');
+  if(btn) btn.textContent = theme === 'dark' ? '☀️ Tema' : '🌙 Tema';
+}
+(function initTheme(){
+  const saved = safeGetStorage(THEME_KEY);
+  if(saved === 'dark' || saved === 'light'){
+    applyTheme(saved);
+  } else {
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(prefersDark ? 'dark' : 'light');
+    if(window.matchMedia){
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        if(!safeGetStorage(THEME_KEY)) applyTheme(e.matches ? 'dark' : 'light');
+      });
+    }
+  }
+  document.getElementById('themeToggleBtn').addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+    const next = current === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    safeSetStorage(THEME_KEY, next);
+  });
+})();
+
+/* ---------- 2. Statistik & Visualisasi ---------- */
+const statsModalEl = document.getElementById('statsModal');
+document.getElementById('statsBtn').addEventListener('click', () => {
+  renderStats();
+  statsModalEl.classList.add('open');
+});
+document.getElementById('statsCloseBtn').addEventListener('click', () => statsModalEl.classList.remove('open'));
+statsModalEl.addEventListener('click', (e) => { if(e.target === statsModalEl) statsModalEl.classList.remove('open'); });
+
+function allHistoryPoints(){
+  // Gabungkan seluruh entri riwayat dari semua materi menjadi satu timeline
+  const points = [];
+  data.forEach(row => {
+    (row.history || []).forEach(h => {
+      points.push({ time: h.time, rowId: row.id, sisa: h.sisa });
+    });
+  });
+  points.sort((a, b) => a.time - b.time);
+  return points;
+}
+
+function computeTrendSeries(){
+  // Untuk setiap titik waktu riwayat, hitung total halaman terisi (seluruh materi) pada saat itu,
+  // dengan asumsi total halaman per materi tetap (menggunakan total halaman saat ini).
+  const points = allHistoryPoints();
+  const totalHalamanAll = data.reduce((sum, r) => sum + rowTotals(r).halaman, 0);
+  if(points.length === 0 || totalHalamanAll === 0) return [];
+
+  const lastKnownSisa = {}; // rowId -> sisa
+  const rowHalaman = {};
+  data.forEach(r => { rowHalaman[r.id] = rowTotals(r).halaman; });
+
+  const series = [];
+  points.forEach(p => {
+    lastKnownSisa[p.rowId] = p.sisa;
+    let totalSisaKnown = 0;
+    let totalHalamanKnown = 0;
+    Object.keys(lastKnownSisa).forEach(rid => {
+      totalSisaKnown += lastKnownSisa[rid];
+      totalHalamanKnown += rowHalaman[rid] || 0;
+    });
+    const pct = totalHalamanKnown > 0 ? ((totalHalamanKnown - totalSisaKnown) / totalHalamanKnown) * 100 : 0;
+    series.push({ time: p.time, pct: Math.max(0, Math.min(100, pct)) });
+  });
+  return series;
+}
+
+function estimateFinish(){
+  const points = allHistoryPoints();
+  if(points.length < 2) return null;
+  const recent = points.slice(-14); // pertimbangkan 14 entri terakhir
+  const first = recent[0], last = recent[recent.length - 1];
+  const daySpan = (last.time - first.time) / 86400000;
+  if(daySpan <= 0) return null;
+
+  const totals = data.reduce((acc, r) => {
+    const t = rowTotals(r);
+    acc.halaman += t.halaman; acc.sisa += t.sisa; return acc;
+  }, { halaman: 0, sisa: 0 });
+
+  // Perkirakan laju pengurangan "sisa" gabungan dari entri riwayat terbaru per materi
+  const startSisaByRow = {}, endSisaByRow = {};
+  recent.forEach(p => {
+    if(!(p.rowId in startSisaByRow)) startSisaByRow[p.rowId] = p.sisa;
+    endSisaByRow[p.rowId] = p.sisa;
+  });
+  let sisaReduced = 0;
+  Object.keys(endSisaByRow).forEach(rid => {
+    sisaReduced += Math.max(0, startSisaByRow[rid] - endSisaByRow[rid]);
+  });
+  if(sisaReduced <= 0) return null;
+
+  const ratePerDay = sisaReduced / daySpan;
+  if(ratePerDay <= 0) return null;
+  const daysLeft = Math.ceil(totals.sisa / ratePerDay);
+  return { daysLeft, ratePerDay };
+}
+
+function drawTrendChart(series){
+  const canvas = document.getElementById('trendCanvas');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth || 560, h = canvas.clientHeight || 160;
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+
+  const styles = getComputedStyle(document.documentElement);
+  const inkFaint = styles.getPropertyValue('--ink-faint').trim() || '#9aa0b1';
+  const primary = styles.getPropertyValue('--primary').trim() || '#5b5bf0';
+  const borderSoft = styles.getPropertyValue('--border-soft').trim() || '#eef0f6';
+
+  const padL = 32, padR = 10, padT = 10, padB = 20;
+  const plotW = w - padL - padR, plotH = h - padT - padB;
+
+  // grid horizontal (0/50/100%)
+  ctx.strokeStyle = borderSoft;
+  ctx.fillStyle = inkFaint;
+  ctx.font = '10px sans-serif';
+  ctx.lineWidth = 1;
+  [0, 50, 100].forEach(v => {
+    const y = padT + plotH - (v / 100) * plotH;
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
+    ctx.fillText(v + '%', 2, y + 3);
+  });
+
+  if(series.length === 0){
+    ctx.fillStyle = inkFaint;
+    ctx.font = '12px sans-serif';
+    ctx.fillText('Belum ada data riwayat untuk ditampilkan.', padL, h / 2);
+    return;
+  }
+
+  const t0 = series[0].time, t1 = series[series.length - 1].time;
+  const tSpan = Math.max(1, t1 - t0);
+
+  ctx.strokeStyle = primary;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  series.forEach((p, i) => {
+    const x = padL + ((p.time - t0) / tSpan) * plotW;
+    const y = padT + plotH - (p.pct / 100) * plotH;
+    if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  ctx.fillStyle = primary;
+  series.forEach(p => {
+    const x = padL + ((p.time - t0) / tSpan) * plotW;
+    const y = padT + plotH - (p.pct / 100) * plotH;
+    ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // label tanggal awal & akhir
+  ctx.fillStyle = inkFaint;
+  ctx.font = '10px sans-serif';
+  const fmt = ts => new Date(ts).toLocaleDateString('id-ID', { day:'2-digit', month:'short' });
+  ctx.fillText(fmt(t0), padL, h - 4);
+  ctx.textAlign = 'right';
+  ctx.fillText(fmt(t1), w - padR, h - 4);
+  ctx.textAlign = 'left';
+}
+
+function renderStats(){
+  const totals = data.reduce((acc, r) => {
+    const t = rowTotals(r); acc.halaman += t.halaman; acc.sisa += t.sisa; return acc;
+  }, { halaman: 0, sisa: 0 });
+  const totalPersen = totals.halaman > 0 ? Math.round(((totals.halaman - totals.sisa) / totals.halaman) * 1000) / 10 : 0;
+  const est = estimateFinish();
+
+  const tilesEl = document.getElementById('statTiles');
+  tilesEl.innerHTML = `
+    <div class="stat-tile"><div class="stv">${totalPersen}%</div><div class="stl">Progres Total</div></div>
+    <div class="stat-tile"><div class="stv">${data.length}</div><div class="stl">Jumlah Materi</div></div>
+    <div class="stat-tile"><div class="stv">${est ? est.daysLeft + ' hari' : '—'}</div><div class="stl">Estimasi Selesai</div></div>
+  `;
+
+  drawTrendChart(computeTrendSeries());
+
+  const cmpEl = document.getElementById('cmpList');
+  cmpEl.innerHTML = '';
+  data.forEach(row => {
+    const t = rowTotals(row);
+    const p = calcPersen(t.halaman, t.sisa);
+    const r = document.createElement('div');
+    r.className = 'cmp-row';
+    r.innerHTML = `
+      <span class="cmp-name" title="${escapeHtml(row.nama || '(tanpa nama)')}">${escapeHtml(row.nama || '(tanpa nama)')}</span>
+      <span class="cmp-bar-bg"><span class="cmp-bar-fill" style="width:${p}%; background:${barColor(p)};"></span></span>
+      <span class="cmp-pct">${p}%</span>
+    `;
+    cmpEl.appendChild(r);
+  });
+  if(data.length === 0){
+    cmpEl.innerHTML = '<div class="history-empty">Belum ada materi.</div>';
+  }
+}
+
+/* ---------- 3. Notifikasi / Pengingat Progres ---------- */
+const remindModalEl = document.getElementById('remindModal');
+const notifDotEl = document.getElementById('notifDot');
+const notifStatusTextEl = document.getElementById('notifStatusText');
+const enableNotifBtn = document.getElementById('enableNotifBtn');
+const notifSupported = typeof window.Notification !== 'undefined';
+
+function updateNotifStatusUI(){
+  if(!notifSupported){
+    notifDotEl.className = 'sync-dot err';
+    notifStatusTextEl.textContent = 'Browser ini tidak mendukung notifikasi.';
+    enableNotifBtn.disabled = true;
+    return;
+  }
+  if(Notification.permission === 'granted'){
+    notifDotEl.className = 'sync-dot on';
+    notifStatusTextEl.textContent = 'Notifikasi aktif.';
+    enableNotifBtn.textContent = 'Notifikasi Sudah Aktif';
+    enableNotifBtn.disabled = true;
+  } else if(Notification.permission === 'denied'){
+    notifDotEl.className = 'sync-dot err';
+    notifStatusTextEl.textContent = 'Izin notifikasi ditolak. Ubah lewat pengaturan browser.';
+  } else {
+    notifDotEl.className = 'sync-dot';
+    notifStatusTextEl.textContent = 'Notifikasi belum diaktifkan.';
+  }
+}
+
+enableNotifBtn.addEventListener('click', async () => {
+  if(!notifSupported) return;
+  try{
+    const perm = await Notification.requestPermission();
+    updateNotifStatusUI();
+    if(perm === 'granted'){
+      showToast('Notifikasi diaktifkan.', null);
+      checkReminders(true);
+    }
+  } catch(e){}
+});
+
+function getStagnantAndDeadlineRows(){
+  const result = [];
+  data.forEach(row => {
+    const t = rowTotals(row);
+    const persen = calcPersen(t.halaman, t.sisa);
+    if(persen >= 100) return;
+    const last = lastActivityTime(row);
+    const idle = last ? daysBetween(Date.now(), last) : null;
+    let deadlineInfo = null;
+    if(row.deadline){
+      const target = new Date(row.deadline + 'T23:59:59').getTime();
+      const sisaHari = daysBetween(target, Date.now());
+      if(sisaHari <= 3) deadlineInfo = sisaHari;
+    }
+    if((idle !== null && idle >= 3) || deadlineInfo !== null){
+      result.push({ row, idle, deadlineInfo });
+    }
+  });
+  return result;
+}
+
+function renderStagnantList(){
+  const list = getStagnantAndDeadlineRows();
+  const el = document.getElementById('stagnantList');
+  if(list.length === 0){
+    el.innerHTML = '<div class="history-empty">Tidak ada materi yang stagnan atau mendekati deadline. Kerja bagus! 🎉</div>';
+    return;
+  }
+  el.innerHTML = list.map(item => {
+    const parts = [];
+    if(item.idle !== null && item.idle >= 3) parts.push(`stagnan ${item.idle} hari`);
+    if(item.deadlineInfo !== null){
+      parts.push(item.deadlineInfo < 0 ? `lewat deadline ${Math.abs(item.deadlineInfo)} hari` : (item.deadlineInfo === 0 ? 'deadline hari ini' : `deadline ${item.deadlineInfo} hari lagi`));
+    }
+    return `<div class="folder-item"><div class="folder-item-meta"><div class="folder-item-title">${escapeHtml(item.row.nama || '(tanpa nama)')}</div><div class="folder-item-sub">${parts.join(' · ')}</div></div></div>`;
+  }).join('');
+}
+
+document.getElementById('remindBtn').addEventListener('click', () => {
+  updateNotifStatusUI();
+  renderStagnantList();
+  remindModalEl.classList.add('open');
+});
+document.getElementById('remindCloseBtn').addEventListener('click', () => remindModalEl.classList.remove('open'));
+remindModalEl.addEventListener('click', (e) => { if(e.target === remindModalEl) remindModalEl.classList.remove('open'); });
+
+const NOTIF_LAST_CHECK_KEY = 'kp_notif_last_check_v1';
+function checkReminders(force){
+  if(!notifSupported || Notification.permission !== 'granted') return;
+  const lastCheck = Number(safeGetStorage(NOTIF_LAST_CHECK_KEY) || 0);
+  const now = Date.now();
+  if(!force && now - lastCheck < 6 * 3600 * 1000) return; // cek maksimal tiap 6 jam
+  safeSetStorage(NOTIF_LAST_CHECK_KEY, String(now));
+
+  const list = getStagnantAndDeadlineRows();
+  if(list.length === 0) return;
+  try{
+    const title = list.length === 1 ? 'Progres materi perlu perhatian' : `${list.length} materi perlu perhatian`;
+    const body = list.slice(0, 3).map(item => item.row.nama || '(tanpa nama)').join(', ') + (list.length > 3 ? ', ...' : '');
+    new Notification(title, { body, icon: undefined });
+  } catch(e){}
+}
+
+updateNotifStatusUI();
+setTimeout(() => checkReminders(false), 2000);
+setInterval(() => checkReminders(false), 3600 * 1000);
+
+/* ---------- 4. Ekspor PDF (via print) ---------- */
+document.getElementById('pdfBtn').addEventListener('click', () => {
+  const before = document.title;
+  document.title = defaultExportFilename();
+  window.print();
+  document.title = before;
+});
+
+/* ---------- 5. Bagikan Laporan (read-only link) ---------- */
+const shareModalEl = document.getElementById('shareModal');
+document.getElementById('shareBtn').addEventListener('click', () => {
+  const identity = getIdentitySafe();
+  const snapshot = {
+    v: 1,
+    nama: identity.nama || '',
+    kelas: identity.kelas || '',
+    generatedAt: Date.now(),
+    materi: data.map(row => {
+      const t = rowTotals(row);
+      return { nama: row.nama || '(tanpa nama)', persen: calcPersen(t.halaman, t.sisa), halaman: t.halaman, terisi: t.halaman - t.sisa };
+    })
+  };
+  const encoded = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(snapshot)))));
+  const url = location.href.split('#')[0] + '#view=' + encoded;
+  document.getElementById('shareLinkInput').value = url;
+  shareModalEl.classList.add('open');
+});
+document.getElementById('shareCloseBtn').addEventListener('click', () => shareModalEl.classList.remove('open'));
+shareModalEl.addEventListener('click', (e) => { if(e.target === shareModalEl) shareModalEl.classList.remove('open'); });
+document.getElementById('shareCopyBtn').addEventListener('click', async () => {
+  const input = document.getElementById('shareLinkInput');
+  input.select();
+  try{
+    await navigator.clipboard.writeText(input.value);
+    showToast('Tautan disalin ke clipboard.', null);
+  } catch(e){
+    document.execCommand('copy');
+    showToast('Tautan disalin.', null);
+  }
+});
+
+function tryRenderSharedReport(){
+  const hash = location.hash || '';
+  if(!hash.startsWith('#view=')) return false;
+  let snapshot;
+  try{
+    const encoded = hash.slice('#view='.length);
+    snapshot = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(encoded)))));
+  } catch(e){
+    return false;
+  }
+  document.querySelector('.wrap:not(#reportView)').style.display = 'none';
+  const reportView = document.getElementById('reportView');
+  reportView.style.display = 'block';
+  const namaKelas = [snapshot.nama, snapshot.kelas].filter(Boolean).join(' · ');
+  document.getElementById('reportSub').textContent = namaKelas
+    ? `${namaKelas} — dibuat ${new Date(snapshot.generatedAt).toLocaleString('id-ID')}`
+    : `Dibuat ${new Date(snapshot.generatedAt).toLocaleString('id-ID')}`;
+  const listEl = document.getElementById('reportList');
+  listEl.innerHTML = (snapshot.materi || []).map(m => `
+    <div class="report-card">
+      <div class="report-name">${escapeHtml(m.nama)}</div>
+      <div class="report-bar-bg"><div class="report-bar-fill" style="width:${m.persen}%; background:${barColor(m.persen)};"></div></div>
+      <div class="report-meta">${m.persen}% &middot; ${m.terisi} / ${m.halaman} halaman</div>
+    </div>
+  `).join('') || '<div class="history-empty">Tidak ada data materi.</div>';
+  return true;
+}
+if(tryRenderSharedReport()){
+  // Hentikan inisialisasi lain yang tidak relevan untuk tampilan read-only
+}
+
+/* ---------- 6. Cloud Sync (Google Drive) ---------- */
+const CLOUD_CLIENT_ID_KEY = 'kp_gdrive_client_id_v1';
+const CLOUD_FILE_NAME = 'kertas-pantau-sync.json';
+const GDRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
+
+const cloudModalEl = document.getElementById('cloudModal');
+const cloudDotEl = document.getElementById('cloudDot');
+const cloudStatusTextEl = document.getElementById('cloudStatusText');
+const gdriveClientIdInput = document.getElementById('gdriveClientId');
+
+let gdriveTokenClient = null;
+let gdriveAccessToken = null;
+let gdriveConnected = false;
+let cloudUploadTimer = null;
+
+function setCloudStatus(state, text){
+  cloudDotEl.className = 'sync-dot' + (state === 'on' ? ' on' : state === 'err' ? ' err' : '');
+  cloudStatusTextEl.textContent = text;
+  const cloudBtn = document.getElementById('cloudBtn');
+  if(cloudBtn){
+    cloudBtn.classList.toggle('ab-connected', state === 'on');
+    cloudBtn.classList.toggle('ab-error', state === 'err');
+  }
+}
+
+(function initCloudUI(){
+  const savedId = safeGetStorage(CLOUD_CLIENT_ID_KEY) || '';
+  gdriveClientIdInput.value = savedId;
+  setCloudStatus('idle', 'Belum terhubung');
+})();
+
+document.getElementById('cloudBtn').addEventListener('click', () => cloudModalEl.classList.add('open'));
+document.getElementById('cloudCloseBtn').addEventListener('click', () => cloudModalEl.classList.remove('open'));
+cloudModalEl.addEventListener('click', (e) => { if(e.target === cloudModalEl) cloudModalEl.classList.remove('open'); });
+
+gdriveClientIdInput.addEventListener('change', () => {
+  safeSetStorage(CLOUD_CLIENT_ID_KEY, gdriveClientIdInput.value.trim());
+});
+
+function loadGisScript(){
+  return new Promise((resolve, reject) => {
+    if(window.google && window.google.accounts && window.google.accounts.oauth2){
+      resolve(); return;
+    }
+    const s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.async = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('Gagal memuat skrip Google Identity Services. Periksa koneksi internet.'));
+    document.head.appendChild(s);
+  });
+}
+
+document.getElementById('cloudConnectBtn').addEventListener('click', async () => {
+  const clientId = gdriveClientIdInput.value.trim();
+  if(!clientId){
+    showToast('Isi Google OAuth Client ID terlebih dahulu.', null);
+    return;
+  }
+  safeSetStorage(CLOUD_CLIENT_ID_KEY, clientId);
+  setCloudStatus('idle', 'Memuat...');
+  try{
+    await loadGisScript();
+    gdriveTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: GDRIVE_SCOPE,
+      callback: async (resp) => {
+        if(resp.error){
+          setCloudStatus('err', 'Gagal masuk: ' + resp.error);
+          return;
+        }
+        gdriveAccessToken = resp.access_token;
+        gdriveConnected = true;
+        setCloudStatus('on', 'Terhubung ke Google Drive.');
+        showToast('Berhasil terhubung ke Google Drive.', null);
+        await autoSyncOnConnect();
+      }
+    });
+    gdriveTokenClient.requestAccessToken({ prompt: '' });
+  } catch(e){
+    setCloudStatus('err', e.message || 'Gagal menghubungkan.');
+  }
+});
+
+document.getElementById('cloudDisconnectBtn').addEventListener('click', () => {
+  if(gdriveAccessToken && window.google){
+    try{ google.accounts.oauth2.revoke(gdriveAccessToken, () => {}); } catch(e){}
+  }
+  gdriveAccessToken = null;
+  gdriveConnected = false;
+  clearInterval(cloudUploadTimer);
+  setCloudStatus('idle', 'Terputus.');
+});
+
+async function gdriveFindFile(){
+  const res = await fetch('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=' + encodeURIComponent(`name='${CLOUD_FILE_NAME}'`) + '&fields=files(id,modifiedTime)', {
+    headers: { Authorization: 'Bearer ' + gdriveAccessToken }
+  });
+  if(!res.ok) throw new Error('Gagal mengakses Google Drive (status ' + res.status + ').');
+  const json = await res.json();
+  return (json.files && json.files[0]) || null;
+}
+
+async function gdriveUpload(){
+  if(!gdriveConnected || !gdriveAccessToken) throw new Error('Belum terhubung ke Google Drive.');
+  const payload = {
+    type: 'progres-materi-backup',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    identity: getIdentitySafe(),
+    data: data
+  };
+  const existing = await gdriveFindFile();
+  const metadata = existing ? { name: CLOUD_FILE_NAME } : { name: CLOUD_FILE_NAME, parents: ['appDataFolder'] };
+  const boundary = 'kpboundary';
+  const body =
+    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n` +
+    `--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(payload)}\r\n--${boundary}--`;
+
+  const url = existing
+    ? `https://www.googleapis.com/upload/drive/v3/files/${existing.id}?uploadType=multipart`
+    : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+  const res = await fetch(url, {
+    method: existing ? 'PATCH' : 'POST',
+    headers: { Authorization: 'Bearer ' + gdriveAccessToken, 'Content-Type': `multipart/related; boundary=${boundary}` },
+    body
+  });
+  if(!res.ok) throw new Error('Unggah ke Drive gagal (status ' + res.status + ').');
+  return true;
+}
+
+async function gdriveDownload(){
+  if(!gdriveConnected || !gdriveAccessToken) throw new Error('Belum terhubung ke Google Drive.');
+  const existing = await gdriveFindFile();
+  if(!existing) return null;
+  const res = await fetch(`https://www.googleapis.com/drive/v3/files/${existing.id}?alt=media`, {
+    headers: { Authorization: 'Bearer ' + gdriveAccessToken }
+  });
+  if(!res.ok) throw new Error('Gagal mengambil data dari Drive (status ' + res.status + ').');
+  return await res.json();
+}
+
+document.getElementById('cloudUploadBtn').addEventListener('click', async () => {
+  setCloudStatus('idle', 'Mengunggah...');
+  try{
+    await gdriveUpload();
+    setCloudStatus('on', 'Data terunggah ke Drive.');
+    showToast('Data berhasil diunggah ke Google Drive.', null);
+  } catch(e){
+    setCloudStatus('err', e.message);
+    showToast(e.message, null);
+  }
+});
+
+document.getElementById('cloudDownloadBtn').addEventListener('click', async () => {
+  setCloudStatus('idle', 'Mengambil data...');
+  try{
+    const remote = await gdriveDownload();
+    if(!remote){
+      setCloudStatus('on', 'Belum ada data tersimpan di Drive.');
+      return;
+    }
+    cloudModalEl.classList.remove('open');
+    openConfirmModal(
+      'Ambil data dari Google Drive?',
+      `Ditemukan backup di Drive (diekspor: <strong>${new Date(remote.exportedAt).toLocaleString('id-ID')}</strong>, ${Array.isArray(remote.data) ? remote.data.length : 0} materi). Mengambil akan <strong>menggantikan data di perangkat ini</strong>. Lanjutkan?`,
+      () => {
+        applyBackupPayload(remote);
+        setCloudStatus('on', 'Data dari Drive berhasil dimuat.');
+      }
+    );
+  } catch(e){
+    setCloudStatus('err', e.message);
+    showToast(e.message, null);
+  }
+});
+
+async function autoSyncOnConnect(){
+  try{
+    const remote = await gdriveDownload();
+    if(remote && Array.isArray(remote.data)){
+      const remoteTime = new Date(remote.exportedAt).getTime() || 0;
+      const localTime = Number(safeGetStorage('kp_last_local_change_v1') || 0);
+      if(remoteTime > localTime){
+        openConfirmModal(
+          'Data lebih baru ditemukan di Google Drive',
+          `Drive memiliki backup dari <strong>${new Date(remote.exportedAt).toLocaleString('id-ID')}</strong>. Muat data tersebut ke perangkat ini? (Data saat ini di perangkat akan digantikan.)`,
+          () => applyBackupPayload(remote)
+        );
+      } else {
+        await gdriveUpload();
+      }
+    } else {
+      await gdriveUpload();
+    }
+  } catch(e){}
+  clearInterval(cloudUploadTimer);
+  cloudUploadTimer = setInterval(() => {
+    if(gdriveConnected) gdriveUpload().catch(() => {});
+  }, 5 * 60 * 1000);
+}
+
+// Catat waktu perubahan lokal terakhir agar bisa dibandingkan saat auto-sync
+const _origSaveForCloud = save;
+save = function(){
+  safeSetStorage('kp_last_local_change_v1', String(Date.now()));
+  _origSaveForCloud();
+};
+
+/* ---------- Bulk selection ---------- */
+let selectMode = false;
+let selectedIds = new Set();
+
+const materiListEl = document.getElementById('materiList');
+const bulkBarEl = document.getElementById('bulkBar');
+const bulkCountTextEl = document.getElementById('bulkCountText');
+const selectModeBtn = document.getElementById('selectModeBtn');
+
+function updateBulkBar(){
+  bulkBarEl.classList.toggle('show', selectMode && selectedIds.size > 0);
+  bulkCountTextEl.textContent = `${selectedIds.size} dipilih`;
+}
+
+selectModeBtn.addEventListener('click', () => {
+  selectMode = !selectMode;
+  selectModeBtn.classList.toggle('active', selectMode);
+  if(!selectMode) selectedIds.clear();
+  render();
+});
+
+materiListEl.addEventListener('change', (e) => {
+  const cb = e.target.closest('.select-checkbox-input');
+  if(!cb) return;
+  const card = cb.closest('.materi-card');
+  const id = card.dataset.id;
+  if(cb.checked) selectedIds.add(id); else selectedIds.delete(id);
+  updateBulkBar();
+});
+
+document.getElementById('bulkCancelBtn').addEventListener('click', () => {
+  selectMode = false;
+  selectedIds.clear();
+  selectModeBtn.classList.remove('active');
+  render();
+});
+
+document.getElementById('bulkDeleteBtn').addEventListener('click', () => {
+  if(selectedIds.size === 0) return;
+  openConfirmModal(
+    `Hapus ${selectedIds.size} materi terpilih?`,
+    `Materi yang dipilih beserta seluruh bab dan riwayatnya akan dihapus secara permanen.`,
+    () => {
+      pushUndoSnapshot();
+      const snap = undoStack[undoStack.length - 1];
+      const idsToRemove = new Set(selectedIds);
+      const cardsToRemove = Array.from(materiListEl.querySelectorAll('.materi-card'))
+        .filter(c => idsToRemove.has(c.dataset.id));
+      cardsToRemove.forEach(c => c.classList.add('removing'));
+      const count = idsToRemove.size;
+      setTimeout(() => {
+        data = data.filter(r => !idsToRemove.has(r.id));
+        selectMode = false;
+        selectedIds.clear();
+        selectModeBtn.classList.remove('active');
+        save();
+        render();
+        showToast(`${count} materi dihapus.`, 'Urungkan', () => { data = snap; save(); render(); });
+      }, cardsToRemove.length ? 260 : 0);
+    }
+  );
+});
+
+/* ---------- Drag & drop reorder (mode 'Urutan Manual') ---------- */
+let dragSrcId = null;
+let dragPlaceBefore = true;
+
+materiListEl.addEventListener('dragstart', (e) => {
+  const handle = e.target.closest('.drag-handle');
+  if(!handle || sortMode !== 'manual'){ e.preventDefault(); return; }
+  const card = handle.closest('.materi-card');
+  dragSrcId = card.dataset.id;
+  card.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', dragSrcId);
+});
+
+materiListEl.addEventListener('dragover', (e) => {
+  if(!dragSrcId) return;
+  e.preventDefault();
+  const card = e.target.closest('.materi-card');
+  if(!card || card.dataset.id === dragSrcId) return;
+  document.querySelectorAll('.materi-card.drag-over-top, .materi-card.drag-over-bottom')
+    .forEach(c => c.classList.remove('drag-over-top', 'drag-over-bottom'));
+  const rect = card.getBoundingClientRect();
+  dragPlaceBefore = (e.clientY - rect.top) < rect.height / 2;
+  card.classList.add(dragPlaceBefore ? 'drag-over-top' : 'drag-over-bottom');
+});
+
+materiListEl.addEventListener('drop', (e) => {
+  if(!dragSrcId) return;
+  e.preventDefault();
+  const card = e.target.closest('.materi-card');
+  document.querySelectorAll('.materi-card.drag-over-top, .materi-card.drag-over-bottom')
+    .forEach(c => c.classList.remove('drag-over-top', 'drag-over-bottom'));
+  if(card && card.dataset.id !== dragSrcId){
+    const fromIdx = data.findIndex(r => r.id === dragSrcId);
+    if(fromIdx !== -1){
+      const [item] = data.splice(fromIdx, 1);
+      let toIdx = data.findIndex(r => r.id === card.dataset.id);
+      if(toIdx === -1){
+        data.push(item);
+      } else {
+        if(!dragPlaceBefore) toIdx += 1;
+        data.splice(toIdx, 0, item);
+      }
+      save();
+      render();
+    }
+  }
+  dragSrcId = null;
+});
+
+materiListEl.addEventListener('dragend', () => {
+  dragSrcId = null;
+  document.querySelectorAll('.materi-card.dragging').forEach(c => c.classList.remove('dragging'));
+  document.querySelectorAll('.materi-card.drag-over-top, .materi-card.drag-over-bottom')
+    .forEach(c => c.classList.remove('drag-over-top', 'drag-over-bottom'));
+});
+
+render();
+setSaveStatus(storageAvailable ? 'saved' : 'error');
+</script>
+</body>
+</html>
