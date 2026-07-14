@@ -888,6 +888,7 @@
     <button type="button" class="btn-ghost" id="remindBtn" title="Pengingat progres">🔔 Pengingat</button>
     <button type="button" class="btn-ghost" id="pdfBtn" title="Ekspor laporan rapi ke PDF">🖨️ PDF</button>
     <button type="button" class="btn-ghost" id="shareBtn" title="Bagikan laporan (read-only)">🔗 Bagikan</button>
+    <button type="button" class="btn-ghost" id="exportHtmlBtn" title="Buat file HTML laporan read-only (nama, kelas, progres) — tidak bisa diedit">📄 Ekspor HTML</button>
     <button type="button" class="btn-ghost" id="cloudBtn" title="Sinkronisasi Google Drive">☁️ Cloud Sync</button>
   </div>
 
@@ -3369,6 +3370,141 @@ function tryRenderSharedReport(){
 if(tryRenderSharedReport()){
   // Hentikan inisialisasi lain yang tidak relevan untuk tampilan read-only
 }
+
+/* ---------- 5b. Ekspor Laporan sebagai file HTML statis (read-only, tidak bisa diedit) ---------- */
+function slugifyFilename(str){
+  return String(str || 'laporan')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '') || 'laporan';
+}
+
+function buildStaticReportHtml(){
+  const identity = getIdentitySafe();
+  const nama = identity.nama || '';
+  const kelas = identity.kelas || '';
+  const generatedAt = new Date();
+
+  const rows = data.map(row => {
+    const t = rowTotals(row);
+    const persen = calcPersen(t.halaman, t.sisa);
+    const status = statusInfo(persen);
+    return {
+      nama: row.nama || '(tanpa nama)',
+      persen,
+      terisi: t.halaman - t.sisa,
+      halaman: t.halaman,
+      statusLabel: status.label,
+      statusCls: status.cls
+    };
+  });
+
+  let totalHalaman = 0, totalTerisi = 0;
+  rows.forEach(r => { totalHalaman += r.halaman; totalTerisi += r.terisi; });
+  const totalPersen = totalHalaman > 0 ? Math.round((totalTerisi / totalHalaman) * 1000) / 10 : 0;
+
+  const namaKelasLine = [nama, kelas].filter(Boolean).join(' &middot; ');
+
+  const cardsHtml = rows.length
+    ? rows.map(r => `
+      <div class="report-card">
+        <div class="report-top">
+          <div class="report-name">${escapeHtml(r.nama)}</div>
+          <span class="report-status ${r.statusCls}">${escapeHtml(r.statusLabel)}</span>
+        </div>
+        <div class="report-bar-bg"><div class="report-bar-fill" style="width:${r.persen}%; background:${barColor(r.persen)};"></div></div>
+        <div class="report-meta">${r.persen}% &middot; ${r.terisi} / ${r.halaman} halaman</div>
+      </div>
+    `).join('')
+    : '<div class="report-empty">Belum ada data materi.</div>';
+
+  return `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laporan Progres${nama ? ' - ' + escapeHtml(nama) : ''}</title>
+<style>
+  :root{
+    --bg:#f6f7fb; --surface:#ffffff; --border:#e7e9f1; --ink:#181b29; --ink-soft:#6b7080; --ink-faint:#9aa0b1;
+    --primary:#5b5bf0; --primary-soft:#ecebff;
+    --good:#19a463; --good-soft:#e6f7ee;
+    --warn:#d98c1c; --warn-soft:#fdf2e1;
+    --bad:#e5484d; --bad-soft:#fdebec;
+    --radius:16px; --shadow-sm:0 1px 2px rgba(20,24,45,.04),0 1px 1px rgba(20,24,45,.03);
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    padding:32px 18px 60px; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{ max-width:720px; margin:0 auto; }
+  .locked-badge{
+    display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700;
+    color:var(--ink-soft); background:var(--surface); border:1px solid var(--border);
+    padding:5px 10px; border-radius:99px; margin-bottom:14px;
+  }
+  h1{ font-size:22px; font-weight:800; margin:0 0 4px; letter-spacing:-.01em; }
+  .sub{ color:var(--ink-soft); font-size:13.5px; margin-bottom:22px; }
+  .summary-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    box-shadow:var(--shadow-sm); padding:16px 20px; margin-bottom:22px;
+    display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  }
+  .summary-card .big{ font-size:26px; font-weight:800; }
+  .summary-card .label{ font-size:11.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.05em; font-weight:600; }
+  .report-card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; margin-bottom:10px; box-shadow:var(--shadow-sm); }
+  .report-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
+  .report-name{ font-weight:700; font-size:14.5px; }
+  .report-status{ font-size:11px; font-weight:700; padding:4px 9px; border-radius:99px; white-space:nowrap; }
+  .status-selesai{ background:var(--good-soft); color:var(--good); }
+  .status-proses{ background:var(--warn-soft); color:var(--warn); }
+  .status-mulai{ background:var(--bad-soft); color:var(--bad); }
+  .report-bar-bg{ height:8px; background:#eef0f6; border-radius:99px; overflow:hidden; margin-bottom:6px; }
+  .report-bar-fill{ height:100%; border-radius:99px; }
+  .report-meta{ font-size:12px; color:var(--ink-soft); }
+  .report-empty{ text-align:center; color:var(--ink-faint); padding:30px 0; font-size:13.5px; }
+  .footnote{ text-align:center; color:var(--ink-faint); font-size:11.5px; margin-top:26px; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="locked-badge">🔒 Laporan read-only &middot; tidak bisa diedit</div>
+    <h1>Laporan Progres Materi</h1>
+    <div class="sub">${namaKelasLine ? namaKelasLine + ' &middot; ' : ''}Dibuat ${escapeHtml(generatedAt.toLocaleString('id-ID'))}</div>
+    <div class="summary-card">
+      <div>
+        <div class="label">Total Progres</div>
+        <div class="big">${totalPersen}%</div>
+      </div>
+      <div>
+        <div class="label">Halaman Terisi</div>
+        <div class="big" style="font-size:18px;">${totalTerisi} / ${totalHalaman}</div>
+      </div>
+    </div>
+    ${cardsHtml}
+    <div class="footnote">Dibuat otomatis dari aplikasi Progres Materi &middot; file ini statis, tidak terhubung ke data asli.</div>
+  </div>
+</body>
+</html>`;
+}
+
+document.getElementById('exportHtmlBtn').addEventListener('click', () => {
+  const identity = getIdentitySafe();
+  const html = buildStaticReportHtml();
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const stamp = new Date().toISOString().slice(0, 10);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `laporan-progres-${slugifyFilename(identity.nama)}-${stamp}.html`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  showToast('File laporan HTML berhasil dibuat.', null);
+});
 
 /* ---------- 6. Cloud Sync (Google Drive) ---------- */
 const CLOUD_CLIENT_ID_KEY = 'kp_gdrive_client_id_v1';
