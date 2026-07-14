@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Detail Santri — Sistem Pondok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: { extend: {
+      fontFamily: { sans: ['Poppins', 'sans-serif'] },
+      colors: { hijau: { DEFAULT:'#059669', dark:'#047857', soft:'#d1fae5' }, emas: { DEFAULT:'#D4AF37', soft:'#faf3d9' } }
+    }}
+  };
+</script>
+<style>
+  body{ background:#f6f7f6; } .dark body{ background:#0b1210; }
+  .fade-in{ animation: fadeIn .25s ease both; } @keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+  .tab-btn.active{ background:#059669; color:#fff; }
+</style>
+</head>
+<body class="min-h-screen font-sans text-slate-800 dark:text-slate-100 pb-14">
+
+<header class="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800 px-4 py-3">
+  <div class="max-w-3xl mx-auto flex items-center justify-between">
+    <a href="index.html" id="backLink" class="text-sm font-semibold text-hijau flex items-center gap-1">← Dashboard</a>
+    <button id="darkToggle" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm border border-slate-200 dark:border-slate-700">🌙</button>
+  </div>
+</header>
+
+<main class="max-w-3xl mx-auto px-4 pt-5">
+  <div id="loadingState" class="text-center py-20 text-sm text-slate-400">Memuat data santri...</div>
+  <div id="errorState" class="hidden text-center py-20 text-red-500 text-sm px-6"></div>
+
+  <div id="content" class="hidden fade-in">
+
+    <!-- Biodata -->
+    <div class="bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 mb-4 flex gap-4 items-center">
+      <div id="fotoWrap" class="w-20 h-20 rounded-2xl bg-hijau/10 flex items-center justify-center text-3xl overflow-hidden shrink-0">🎓</div>
+      <div class="min-w-0">
+        <h1 id="namaSantri" class="text-lg font-bold leading-tight truncate"></h1>
+        <div class="text-xs text-slate-500 dark:text-slate-400 mt-1" id="metaSantri"></div>
+        <div class="flex items-center gap-2 mt-2">
+          <span id="statusBadge" class="text-[11px] font-bold px-2 py-0.5 rounded-full"></span>
+          <span class="text-[11px] font-semibold text-emas">⭐ <span id="poinSantri">0</span> poin</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Multi target -->
+    <div class="bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 mb-4">
+      <div class="text-sm font-semibold mb-3">Target Progres</div>
+      <div class="space-y-3" id="targetList"></div>
+    </div>
+
+    <!-- AI Analisa -->
+    <div class="bg-gradient-to-br from-hijau/10 to-emas/10 border border-hijau/20 rounded-2xl p-5 mb-4">
+      <div class="text-sm font-semibold mb-1.5 flex items-center gap-1.5">🤖 Analisa Otomatis</div>
+      <p class="text-sm leading-relaxed" id="aiAnalisa">Menganalisa...</p>
+      <p class="text-[10px] text-slate-400 mt-2">*Analisa berbasis aturan dari tren data, bukan model AI eksternal.</p>
+    </div>
+
+    <!-- Grafik 6 bulan -->
+    <div class="bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 mb-4">
+      <div class="text-sm font-semibold mb-2">Grafik Progres — 6 Bulan Terakhir</div>
+      <canvas id="chartProgres" height="140"></canvas>
+    </div>
+
+    <!-- Cetak -->
+    <div class="grid grid-cols-2 gap-3 mb-4">
+      <button id="btnRaportPdf" class="py-3 rounded-xl bg-hijau text-white font-semibold text-sm shadow-sm">📄 Cetak Raport PDF</button>
+      <button id="btnSertifikat" class="py-3 rounded-xl bg-emas text-slate-900 font-semibold text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">🏆 Sertifikat</button>
+    </div>
+
+    <!-- Form input setoran (Ustadz/Admin only) -->
+    <div id="formSetoranWrap" class="hidden bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 mb-4">
+      <div class="text-sm font-semibold mb-3">Input Setoran / Catatan Baru</div>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Tanggal</label>
+          <input id="inpTanggal" type="date" class="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm">
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Jenis</label>
+          <select id="inpJenis" class="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm">
+            <option value="Setor Quran">Setor Qur'an</option>
+            <option value="Setor Kitab">Setor Kitab</option>
+            <option value="Setor Tahsin">Setor Tahsin</option>
+            <option value="Murajaah">Murajaah</option>
+            <option value="Telat">Telat</option>
+            <option value="Bolos">Bolos</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Jumlah (halaman/juz)</label>
+          <input id="inpJumlah" type="number" min="0" class="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm" placeholder="0">
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Nilai</label>
+          <input id="inpNilai" type="text" class="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm" placeholder="A / 90 / dst">
+        </div>
+      </div>
+      <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Catatan</label>
+      <textarea id="inpCatatan" rows="2" class="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm mb-3" placeholder="Catatan ustadz..."></textarea>
+      <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Upload Bukti (Foto / Voice Note)</label>
+      <input id="inpFile" type="file" accept="image/*,audio/*" class="w-full text-xs mb-1 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-hijau/10 file:text-hijau file:text-xs file:font-semibold">
+      <p id="uploadStatus" class="text-[11px] text-slate-400 mb-3"></p>
+      <button id="btnSimpanSetoran" class="w-full py-3 rounded-xl bg-hijau text-white font-semibold text-sm shadow-sm disabled:opacity-60">Simpan</button>
+      <p id="setoranError" class="text-xs text-red-500 mt-2 hidden"></p>
+    </div>
+
+    <!-- Riwayat -->
+    <div class="bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 mb-4">
+      <div class="text-sm font-semibold mb-3">Riwayat Lengkap</div>
+      <div class="overflow-x-auto -mx-1">
+        <table class="w-full text-xs">
+          <thead>
+            <tr class="text-left text-slate-400 border-b border-slate-100 dark:border-slate-700">
+              <th class="py-2 px-1 font-semibold">Tanggal</th>
+              <th class="py-2 px-1 font-semibold">Jenis</th>
+              <th class="py-2 px-1 font-semibold">Jml</th>
+              <th class="py-2 px-1 font-semibold">Nilai</th>
+              <th class="py-2 px-1 font-semibold">Ustadz</th>
+              <th class="py-2 px-1 font-semibold">Bukti</th>
+            </tr>
+          </thead>
+          <tbody id="riwayatBody"></tbody>
+        </table>
+      </div>
+      <div id="riwayatEmpty" class="hidden text-center text-xs text-slate-400 py-6">Belum ada riwayat.</div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+/* ====== KONFIGURASI ====== */
+const API_URL = 'GANTI_DENGAN_URL_DEPLOYMENT_APPS_SCRIPT';
+const NAMA_PONDOK = 'Pondok Pesantren'; // dipakai di kop PDF, ganti sesuai nama pondok
+
+/* ====== AUTH GUARD ====== */
+const rawUser = sessionStorage.getItem('pondok_user');
+if(!rawUser) window.location.href = 'login.html';
+const currentUser = rawUser ? JSON.parse(rawUser) : null;
+
+const params = new URLSearchParams(window.location.search);
+const santriId = params.get('id');
+if(!santriId){ document.write('ID santri tidak ditemukan di URL.'); }
+
+const canEdit = currentUser && ['SuperAdmin','Admin','Ustadz'].includes(currentUser.role);
+if(currentUser && currentUser.role === 'Wali') document.getElementById('backLink').classList.add('hidden');
+
+/* ====== DARK MODE ====== */
+const darkToggle = document.getElementById('darkToggle');
+function applyDarkMode(on){
+  document.documentElement.classList.toggle('dark', on);
+  darkToggle.textContent = on ? '☀️' : '🌙';
+  localStorage.setItem('pondok_dark', on ? '1' : '0');
+}
+applyDarkMode(localStorage.getItem('pondok_dark') !== '0');
+darkToggle.addEventListener('click', () => applyDarkMode(!document.documentElement.classList.contains('dark')));
+
+/* ====== API HELPER ====== */
+async function callApi(payload){
+  if(API_URL.includes('GANTI_DENGAN')) throw new Error('API_URL belum diisi. Lihat README.md.');
+  const res = await fetch(API_URL, {
+    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload)
+  });
+  return res.json();
+}
+
+/* ====== STATE ====== */
+let santriData = null;
+let riwayatData = [];
+
+/* ====== LOAD ====== */
+async function loadSantri(){
+  try{
+    const result = await callApi({
+      action: 'getSantriDetail', id: santriId,
+      role: currentUser?.role, requesterId: currentUser?.username
+    });
+    if(!result.ok) throw new Error(result.error || 'Gagal memuat data');
+    santriData = result.santri;
+    riwayatData = (result.riwayat || []).sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal));
+
+    renderBiodata();
+    renderTargets();
+    renderAiAnalisa();
+    renderChart();
+    renderRiwayat();
+
+    if(canEdit) document.getElementById('formSetoranWrap').classList.remove('hidden');
+    document.getElementById('loadingState').classList.add('hidden');
+    document.getElementById('content').classList.remove('hidden');
+    document.getElementById('inpTanggal').value = new Date().toISOString().slice(0,10);
+  } catch(err){
+    document.getElementById('loadingState').classList.add('hidden');
+    document.getElementById('errorState').textContent = err.message;
+    document.getElementById('errorState').classList.remove('hidden');
+  }
+}
+
+/* ====== BIODATA ====== */
+function renderBiodata(){
+  document.getElementById('namaSantri').textContent = santriData.nama || '(tanpa nama)';
+  document.getElementById('metaSantri').textContent = `${santriData.kelas || '-'} · ${santriData.halaqoh || '-'} · Wali: ${santriData.no_wali || '-'}`;
+  document.getElementById('poinSantri').textContent = Number(santriData.poin) || 0;
+  if(santriData.foto_url){
+    document.getElementById('fotoWrap').innerHTML = `<img src="${escapeAttr(santriData.foto_url)}" class="w-full h-full object-cover">`;
+  }
+  const persenQuran = persenTarget(santriData.target, santriData.tercapai);
+  const poin = Number(santriData.poin) || 0;
+  const badge = document.getElementById('statusBadge');
+  if(poin < 0 || persenQuran < 40){ badge.textContent = 'Perhatian'; badge.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300'; }
+  else if(persenQuran >= 90){ badge.textContent = 'Sangat Baik'; badge.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-hijau-soft text-hijau dark:bg-hijau/20 dark:text-hijau'; }
+  else { badge.textContent = 'Proses'; badge.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-emas-soft text-amber-700 dark:bg-emas/20 dark:text-emas'; }
+}
+
+function persenTarget(target, tercapai){
+  const t = Number(target) || 0, c = Number(tercapai) || 0;
+  if(t <= 0) return 0;
+  return Math.min(100, Math.round((c / t) * 100));
+}
+
+/* ====== MULTI TARGET ====== */
+function renderTargets(){
+  const targets = [
+    { label: "Qur'an", target: santriData.target, tercapai: santriData.tercapai, color: '#059669' },
+    { label: 'Kitab', target: santriData.target_kitab, tercapai: santriData.tercapai_kitab, color: '#D4AF37' },
+    { label: 'Tahsin', target: santriData.target_tahsin, tercapai: santriData.tercapai_tahsin, color: '#0ea5e9' }
+  ];
+  const wrap = document.getElementById('targetList');
+  wrap.innerHTML = targets.map(t => {
+    const hasTarget = Number(t.target) > 0;
+    const persen = persenTarget(t.target, t.tercapai);
+    return `
+      <div>
+        <div class="flex items-center justify-between text-xs mb-1">
+          <span class="font-medium">${t.label}</span>
+          <span class="text-slate-500 dark:text-slate-400">${hasTarget ? `${t.tercapai || 0} / ${t.target} (${persen}%)` : 'Belum diset'}</span>
+        </div>
+        <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+          <div class="h-full rounded-full" style="width:${hasTarget ? persen : 0}%; background:${t.color}"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ====== AI ANALISA (rule-based) ====== */
+function renderAiAnalisa(){
+  const monthly = groupByMonth(riwayatData, 6);
+  const el = document.getElementById('aiAnalisa');
+  const setoranBulanIni = monthly[monthly.length - 1]?.total || 0;
+  const setoranBulanLalu = monthly[monthly.length - 2]?.total || 0;
+
+  const lastSetorDate = riwayatData.find(r => (r.jenis || '').indexOf('Setor') === 0);
+  const daysSinceLastSetor = lastSetorDate ? daysBetween(new Date(), new Date(lastSetorDate.tanggal)) : null;
+
+  const telatCount = riwayatData.filter(r => r.jenis === 'Telat').length;
+  const bolosCount = riwayatData.filter(r => r.jenis === 'Bolos').length;
+
+  const messages = [];
+
+  if(setoranBulanLalu > 0 && setoranBulanIni < setoranBulanLalu){
+    const turun = Math.round(((setoranBulanLalu - setoranBulanIni) / setoranBulanLalu) * 100);
+    messages.push(`Progres bulan ini turun ${turun}% dibanding bulan lalu. Rekomendasi: tambah porsi murajaah dan evaluasi kendala santri.`);
+  } else if(setoranBulanLalu > 0 && setoranBulanIni > setoranBulanLalu){
+    const naik = Math.round(((setoranBulanIni - setoranBulanLalu) / setoranBulanLalu) * 100);
+    messages.push(`Progres bulan ini naik ${naik}% dibanding bulan lalu. Pertahankan konsistensi ini.`);
+  }
+
+  if(daysSinceLastSetor !== null && daysSinceLastSetor >= 3){
+    messages.push(`Sudah ${daysSinceLastSetor} hari sejak setoran terakhir. Perlu ditindaklanjuti oleh ustadz/wali.`);
+  }
+
+  if(bolosCount >= 2){
+    messages.push(`Tercatat ${bolosCount}x bolos. Disarankan komunikasi langsung dengan wali santri.`);
+  } else if(telatCount >= 3){
+    messages.push(`Tercatat ${telatCount}x telat setoran. Perlu pengingat rutin.`);
+  }
+
+  if(!messages.length){
+    messages.push('Belum ada tren mencolok dari data yang tersedia. Progres terpantau berjalan normal.');
+  }
+
+  el.textContent = messages.join(' ');
+}
+
+function daysBetween(a, b){ return Math.round(Math.abs(a - b) / 86400000); }
+
+function groupByMonth(rows, months){
+  const now = new Date();
+  const buckets = [];
+  for(let i = months - 1; i >= 0; i--){
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    buckets.push({ key: `${d.getFullYear()}-${d.getMonth()}`, label: d.toLocaleDateString('id-ID', { month:'short', year:'2-digit' }), total: 0 });
+  }
+  rows.forEach(r => {
+    if((r.jenis || '').indexOf('Setor') !== 0) return;
+    const d = new Date(r.tanggal);
+    if(isNaN(d)) return;
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    const bucket = buckets.find(b => b.key === key);
+    if(bucket) bucket.total += Number(r.jumlah) || 0;
+  });
+  return buckets;
+}
+
+/* ====== CHART ====== */
+let chartInstance = null;
+function renderChart(){
+  const monthly = groupByMonth(riwayatData, 6);
+  const ctx = document.getElementById('chartProgres');
+  if(chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: monthly.map(m => m.label),
+      datasets: [{ data: monthly.map(m => m.total), borderColor: '#059669', backgroundColor: '#05966922', fill: true, tension: .35, pointRadius: 3 }]
+    },
+    options: { plugins: { legend: { display:false } }, responsive:true, maintainAspectRatio:false }
+  });
+}
+
+/* ====== RIWAYAT TABLE ====== */
+function renderRiwayat(){
+  const body = document.getElementById('riwayatBody');
+  const empty = document.getElementById('riwayatEmpty');
+  if(!riwayatData.length){ body.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  body.innerHTML = riwayatData.map(r => `
+    <tr class="border-b border-slate-50 dark:border-slate-800">
+      <td class="py-2 px-1 whitespace-nowrap">${escapeHtml(r.tanggal || '-')}</td>
+      <td class="py-2 px-1">${escapeHtml(r.jenis || '-')}</td>
+      <td class="py-2 px-1">${r.jumlah || '-'}</td>
+      <td class="py-2 px-1">${escapeHtml(r.nilai || '-')}</td>
+      <td class="py-2 px-1">${escapeHtml(r.ustadz || '-')}</td>
+      <td class="py-2 px-1">${r.bukti_url ? `<a href="${escapeAttr(r.bukti_url)}" target="_blank" class="text-hijau underline">Lihat</a>` : '-'}</td>
+    </tr>
+  `).join('');
+}
+
+/* ====== FORM SETORAN ====== */
+let uploadedFileUrl = '';
+document.getElementById('inpFile')?.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  const statusEl = document.getElementById('uploadStatus');
+  if(!file){ uploadedFileUrl = ''; statusEl.textContent = ''; return; }
+  statusEl.textContent = 'Mengunggah...';
+  try{
+    const base64 = await fileToBase64(file);
+    const result = await callApi({ action: 'uploadFile', base64, filename: file.name, mimeType: file.type });
+    if(!result.ok) throw new Error(result.error || 'Upload gagal');
+    uploadedFileUrl = result.url;
+    statusEl.textContent = '✓ File terunggah';
+  } catch(err){
+    statusEl.textContent = 'Gagal upload: ' + err.message;
+    uploadedFileUrl = '';
+  }
+});
+
+function fileToBase64(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+document.getElementById('btnSimpanSetoran')?.addEventListener('click', async () => {
+  const errEl = document.getElementById('setoranError');
+  errEl.classList.add('hidden');
+  const btn = document.getElementById('btnSimpanSetoran');
+
+  const payload = {
+    action: 'saveSetoran',
+    id_santri: santriId,
+    tanggal: document.getElementById('inpTanggal').value,
+    jenis: document.getElementById('inpJenis').value,
+    jumlah: document.getElementById('inpJumlah').value,
+    nilai: document.getElementById('inpNilai').value,
+    catatan: document.getElementById('inpCatatan').value,
+    bukti_url: uploadedFileUrl,
+    ustadz: currentUser?.username || ''
+  };
+
+  btn.disabled = true; btn.textContent = 'Menyimpan...';
+  try{
+    const result = await callApi(payload);
+    if(!result.ok) throw new Error(result.error || 'Gagal menyimpan');
+    document.getElementById('inpJumlah').value = '';
+    document.getElementById('inpNilai').value = '';
+    document.getElementById('inpCatatan').value = '';
+    document.getElementById('inpFile').value = '';
+    document.getElementById('uploadStatus').textContent = '';
+    uploadedFileUrl = '';
+    await loadSantri(); // refresh semua data & grafik
+  } catch(err){
+    errEl.textContent = err.message;
+    errEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Simpan';
+  }
+});
+
+/* ====== CETAK RAPORT PDF ====== */
+document.getElementById('btnRaportPdf').addEventListener('click', () => {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const monthly = groupByMonth(riwayatData, 6);
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(5, 150, 105);
+  doc.text(NAMA_PONDOK, 14, 18);
+  doc.setFontSize(12); doc.setTextColor(30,30,30);
+  doc.text('Raport Progres Santri — 6 Bulan Terakhir', 14, 26);
+
+  doc.setDrawColor(212, 175, 55); doc.setLineWidth(0.8); doc.line(14, 30, 196, 30);
+
+  doc.setFontSize(10); doc.setFont('helvetica','normal');
+  doc.text(`Nama: ${santriData.nama || '-'}`, 14, 40);
+  doc.text(`Kelas: ${santriData.kelas || '-'}    Halaqoh: ${santriData.halaqoh || '-'}`, 14, 46);
+  doc.text(`Poin: ${santriData.poin || 0}`, 14, 52);
+
+  doc.setFont('helvetica','bold'); doc.text("Target Progres", 14, 62);
+  doc.setFont('helvetica','normal');
+  doc.text(`Qur'an: ${santriData.tercapai || 0} / ${santriData.target || '-'} (${persenTarget(santriData.target, santriData.tercapai)}%)`, 14, 68);
+  doc.text(`Kitab: ${santriData.tercapai_kitab || 0} / ${santriData.target_kitab || '-'} (${persenTarget(santriData.target_kitab, santriData.tercapai_kitab)}%)`, 14, 74);
+  doc.text(`Tahsin: ${santriData.tercapai_tahsin || 0} / ${santriData.target_tahsin || '-'} (${persenTarget(santriData.target_tahsin, santriData.tercapai_tahsin)}%)`, 14, 80);
+
+  doc.setFont('helvetica','bold'); doc.text('Rekap Bulanan (halaman/juz disetor)', 14, 92);
+  let y = 98;
+  doc.setFont('helvetica','normal');
+  monthly.forEach(m => { doc.text(`${m.label}: ${m.total}`, 14, y); y += 6; });
+
+  y += 4;
+  doc.setFont('helvetica','bold'); doc.text('Riwayat Terakhir', 14, y); y += 6;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9);
+  riwayatData.slice(0, 15).forEach(r => {
+    doc.text(`${r.tanggal || '-'}  ${r.jenis || '-'}  jml:${r.jumlah || '-'}  nilai:${r.nilai || '-'}`, 14, y);
+    y += 5.5;
+    if(y > 280){ doc.addPage(); y = 20; }
+  });
+
+  doc.save(`raport-${(santriData.nama || 'santri').replace(/\s+/g,'-')}.pdf`);
+});
+
+/* ====== SERTIFIKAT OTOMATIS ====== */
+document.getElementById('btnSertifikat').addEventListener('click', () => {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape' });
+  const w = doc.internal.pageSize.getWidth();
+  const h = doc.internal.pageSize.getHeight();
+
+  doc.setFillColor(255,255,255); doc.rect(0,0,w,h,'F');
+  doc.setDrawColor(212,175,55); doc.setLineWidth(2); doc.rect(8,8,w-16,h-16);
+  doc.setDrawColor(5,150,105); doc.setLineWidth(0.6); doc.rect(12,12,w-24,h-24);
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(24); doc.setTextColor(5,150,105);
+  doc.text('SERTIFIKAT PENCAPAIAN', w/2, 40, { align:'center' });
+
+  doc.setFont('helvetica','normal'); doc.setFontSize(12); doc.setTextColor(60,60,60);
+  doc.text('Diberikan kepada:', w/2, 55, { align:'center' });
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(22); doc.setTextColor(30,30,30);
+  doc.text(santriData.nama || '-', w/2, 68, { align:'center' });
+
+  doc.setFont('helvetica','normal'); doc.setFontSize(12); doc.setTextColor(60,60,60);
+  const persen = persenTarget(santriData.target, santriData.tercapai);
+  doc.text(`Atas pencapaian target Qur'an sebesar ${persen}% (${santriData.tercapai || 0} dari ${santriData.target || 0})`, w/2, 80, { align:'center' });
+  doc.text(`${NAMA_PONDOK} — ${new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' })}`, w/2, 92, { align:'center' });
+
+  doc.save(`sertifikat-${(santriData.nama || 'santri').replace(/\s+/g,'-')}.pdf`);
+});
+
+function updateSertifikatButtonState(){
+  const persen = persenTarget(santriData?.target, santriData?.tercapai);
+  document.getElementById('btnSertifikat').disabled = persen < 100;
+}
+
+/* ====== UTIL ====== */
+function escapeHtml(str){ return String(str).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+function escapeAttr(str){ return escapeHtml(str); }
+
+/* ====== INIT ====== */
+if(santriId){
+  loadSantri().then(() => { if(santriData) updateSertifikatButtonState(); });
+}
+</script>
+</body>
+</html>
