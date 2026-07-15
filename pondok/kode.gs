@@ -39,7 +39,7 @@ function setupSheets() {
   const schema = {
     [SHEET_SANTRI]: ['id', 'nama', 'kelas', 'halaqoh', 'no_wali', 'target', 'tercapai', 'target_kitab', 'tercapai_kitab', 'target_tahsin', 'tercapai_tahsin', 'poin', 'status', 'foto_url'],
     [SHEET_SETORAN]: ['id_santri', 'tanggal', 'jenis', 'jumlah', 'nilai', 'catatan', 'bukti_url', 'ustadz'],
-    [SHEET_USERS]: ['username', 'pin', 'role', 'halaqoh', 'no_wa'],
+    [SHEET_USERS]: ['username', 'pin', 'nama', 'role', 'halaqoh', 'no_wa'], //FITUR BARU: tambah kolom 'nama'
     [SHEET_KEUANGAN]: ['tanggal', 'jenis', 'keterangan', 'jumlah', 'bukti']
   };
   Object.keys(schema).forEach(name => {
@@ -56,7 +56,7 @@ function setupSheets() {
   // Tambahkan 1 akun SuperAdmin contoh supaya bisa langsung login pertama kali
   const usersSheet = ss.getSheetByName(SHEET_USERS);
   if (usersSheet.getLastRow() < 2) {
-    usersSheet.appendRow(['admin', '123456', 'SuperAdmin', '', '']);
+    usersSheet.appendRow(['admin', '123456', 'Super Admin', 'SuperAdmin', '', '']); //FITUR BARU: kolom nama ditambahkan
   }
   Logger.log('Setup selesai. Sheet & akun default (admin / PIN 123456) sudah dibuat.');
 }
@@ -86,6 +86,8 @@ function doPost(e) {
       case 'getAbsen':      result = handleGetAbsen(body); break;          //FITUR BARU
       case 'savePresentasi': result = handleSavePresentasi(body); break;   //FITUR BARU
       case 'getPresentasiData': result = handleGetPresentasiData(body); break; //FITUR BARU
+      case 'tambahUser':    result = handleTambahUser(body); break;        //FITUR BARU
+      case 'getUsers':      result = handleGetUsers(body); break;          //FITUR BARU
       default:              result = { ok: false, error: 'Action tidak dikenali: ' + body.action };
     }
   } catch (err) {
@@ -493,6 +495,56 @@ function handleGetPresentasiData(body) {
     .filter(r => r.jenis === 'Presentasi' && formatDateOnly(r.tanggal) === tanggal);
 
   return { ok: true, santri, presentasi };
+}
+
+/* ================= MANAJEMEN USER — MODUL BARU (khusus SuperAdmin) ================= */
+//FITUR BARU — self-healing: sheet Users lama (dibuat sebelum fitur ini) belum punya kolom
+// 'nama'. Fungsi ini otomatis menyisipkan kolom itu kalau belum ada, tanpa perlu setupSheets ulang.
+function ensureUsersNamaColumn() {
+  const sheet = getSheet(SHEET_USERS);
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  if (headers.indexOf('nama') === -1) {
+    sheet.insertColumnAfter(2); // sisipkan setelah kolom 'pin'
+    sheet.getRange(1, 3).setValue('nama').setFontWeight('bold');
+  }
+}
+
+//FITUR BARU — tambah user baru. Keamanan: hanya requesterRole === 'SuperAdmin' yang diizinkan,
+// dicek di backend (bukan cuma disembunyikan di UI).
+function handleTambahUser(body) {
+  if (body.requesterRole !== 'SuperAdmin') {
+    return { status: 'error', message: 'Hanya SuperAdmin yang boleh menambah user' };
+  }
+  const { username, pin, nama, role, halaqoh, no_hp } = body;
+  if (!username || !pin || !role) {
+    return { status: 'error', message: 'Username, PIN, dan Role wajib diisi' };
+  }
+
+  ensureUsersNamaColumn();
+  const sheet = getSheet(SHEET_USERS);
+  const users = sheetToObjects(sheet);
+  const duplikat = users.some(u => String(u.username).toLowerCase() === String(username).toLowerCase());
+  if (duplikat) {
+    return { status: 'error', message: 'Username sudah dipakai, pilih username lain' };
+  }
+
+  appendRowFromObject(sheet, {
+    username, pin, nama: nama || '', role, halaqoh: halaqoh || '', no_wa: no_hp || ''
+  });
+  return { status: 'ok', message: 'User berhasil ditambahkan' };
+}
+
+//FITUR BARU — daftar user untuk tabel manajemen SuperAdmin. PIN sengaja tidak dikirim ke
+// client demi keamanan (tidak perlu ditampilkan di tabel).
+function handleGetUsers(body) {
+  if (body.requesterRole !== 'SuperAdmin') {
+    return { ok: false, error: 'Hanya SuperAdmin yang boleh melihat daftar user' };
+  }
+  ensureUsersNamaColumn();
+  const users = sheetToObjects(getSheet(SHEET_USERS)).map(u => ({
+    username: u.username, nama: u.nama || '', role: u.role, halaqoh: u.halaqoh || '', no_hp: u.no_wa || ''
+  }));
+  return { ok: true, data: users };
 }
 
 /* ================= WHATSAPP (Fonnte) ================= */
