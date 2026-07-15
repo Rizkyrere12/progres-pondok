@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Presentasi Pencapaian — Sistem Pondok</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: { extend: {
+      fontFamily: { sans: ['Poppins', 'sans-serif'] },
+      colors: { hijau: { DEFAULT:'#059669', dark:'#047857', soft:'#d1fae5' }, emas: { DEFAULT:'#D4AF37', soft:'#faf3d9' } }
+    }}
+  };
+</script>
+<style>
+  body{ background:#f6f7f6; } .dark body{ background:#0b1210; }
+  .fade-in{ animation: fadeIn .25s ease both; } @keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+  .card-saved{ box-shadow: 0 0 0 2px #059669 inset; }
+  .toast{ animation: slideUp .25s ease both; } @keyframes slideUp{ from{opacity:0; transform:translate(-50%,10px);} to{opacity:1; transform:translate(-50%,0);} }
+</style>
+</head>
+<body class="min-h-screen font-sans text-slate-800 dark:text-slate-100 pb-16">
+
+<header class="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800 px-4 py-3">
+  <div class="max-w-5xl mx-auto flex items-center justify-between">
+    <a href="index.html" class="text-sm font-semibold text-hijau flex items-center gap-1">← Dashboard</a>
+    <button id="darkToggle" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm border border-slate-200 dark:border-slate-700">🌙</button>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 pt-5">
+
+  <div id="accessDenied" class="hidden text-center py-24 text-sm text-red-500 px-6">Role kamu tidak punya akses ke halaman ini.</div>
+
+  <div id="pageContent" class="hidden">
+    <h1 class="text-lg font-bold mb-1">📊 Presentasi Pencapaian</h1>
+    <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Input setoran baru, murajaah, dan nilai langsung per santri.</p>
+
+    <!-- Filter -->
+    <div class="flex flex-wrap gap-2 mb-4">
+      <input id="tanggalFilter" type="date" class="px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 text-sm">
+      <select id="halaqohFilter" class="flex-1 min-w-[140px] px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 text-sm">
+        <option value="">Pilih Halaqoh</option>
+      </select>
+      <button id="btnEksporPdf" class="px-4 py-2.5 rounded-xl bg-emas text-slate-900 font-semibold text-sm shadow-sm">📄 Ekspor PDF</button>
+    </div>
+
+    <div id="loadingGrid" class="text-center py-10 text-sm text-slate-400">Pilih halaqoh untuk memuat data.</div>
+    <div id="errorGrid" class="hidden text-center py-10 text-red-500 text-sm px-6"></div>
+
+    <div id="santriGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+  </div>
+
+</main>
+
+<div id="toast" class="hidden toast fixed bottom-6 left-1/2 -translate-x-1/2 bg-hijau text-white text-sm font-semibold px-5 py-3 rounded-xl shadow-lg z-50"></div>
+
+<script>
+/* ====== KONFIGURASI ====== */
+const API_URL = 'https://script.google.com/macros/s/AKfycbw3bi_-pKcsAlxhMgeqFuTVUKkpe3hNmN4urGs5pirGfAAtTdUFCyvbKRm-9x-Z0h7g5A/exec';
+const NAMA_PONDOK = 'Pondok Pesantren';
+
+/* ====== AUTH GUARD + KONTROL AKSES ROLE ====== */ //FITUR BARU
+const rawUser = sessionStorage.getItem('pondok_user');
+if(!rawUser) window.location.href = 'login.html';
+const currentUser = rawUser ? JSON.parse(rawUser) : null;
+const ALLOWED_ROLES = ['Ustadz', 'Admin', 'SuperAdmin']; //FITUR BARU
+
+if(currentUser && !ALLOWED_ROLES.includes(currentUser.role)){
+  document.getElementById('accessDenied').classList.remove('hidden');
+} else {
+  document.getElementById('pageContent').classList.remove('hidden');
+}
+
+/* ====== DARK MODE ====== */
+const darkToggle = document.getElementById('darkToggle');
+function applyDarkMode(on){
+  document.documentElement.classList.toggle('dark', on);
+  darkToggle.textContent = on ? '☀️' : '🌙';
+  localStorage.setItem('pondok_dark', on ? '1' : '0');
+}
+applyDarkMode(localStorage.getItem('pondok_dark') !== '0');
+darkToggle.addEventListener('click', () => applyDarkMode(!document.documentElement.classList.contains('dark')));
+
+/* ====== TOAST ====== */
+function showToast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => el.classList.add('hidden'), 2500);
+}
+
+/* ====== API HELPER ====== */
+async function callApi(payload){
+  const res = await fetch(API_URL, {
+    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload)
+  });
+  return res.json();
+}
+
+/* ====== STATE ====== */
+let santriList = [];
+let presentasiMap = {}; // { id_santri: { jumlah, nilai, catatan } }
+
+/* ====== INIT ====== */
+document.getElementById('tanggalFilter').value = new Date().toISOString().slice(0,10);
+
+function setupHalaqohLock(selectEl){
+  //FITUR BARU — Ustadz otomatis dikunci ke halaqoh-nya sendiri
+  if(currentUser.role === 'Ustadz'){
+    selectEl.innerHTML = `<option value="${currentUser.halaqoh}">${currentUser.halaqoh}</option>`;
+    selectEl.value = currentUser.halaqoh;
+    selectEl.disabled = true;
+  }
+}
+setupHalaqohLock(document.getElementById('halaqohFilter'));
+
+document.getElementById('halaqohFilter').addEventListener('change', loadPresentasi);
+document.getElementById('tanggalFilter').addEventListener('change', loadPresentasi);
+
+//FITUR BARU — Admin/SuperAdmin: isi pilihan halaqoh dari data santri yang ada
+async function populateHalaqohOptionsIfNeeded(){
+  if(currentUser.role === 'Ustadz') { loadPresentasi(); return; }
+  try{
+    const result = await callApi({ action: 'getData', role: currentUser.role });
+    if(!result.ok) return;
+    const halaqohSet = [...new Set((result.data || []).map(s => s.halaqoh).filter(Boolean))].sort();
+    const sel = document.getElementById('halaqohFilter');
+    halaqohSet.forEach(h => sel.insertAdjacentHTML('beforeend', `<option value="${h}">${h}</option>`));
+  } catch(err){ /* biarkan user pilih manual kalau gagal */ }
+}
+populateHalaqohOptionsIfNeeded();
+
+/* ====== LOAD DATA ====== */
+async function loadPresentasi(){
+  const halaqoh = document.getElementById('halaqohFilter').value;
+  const tanggal = document.getElementById('tanggalFilter').value;
+  const loading = document.getElementById('loadingGrid');
+  const errorEl = document.getElementById('errorGrid');
+  const grid = document.getElementById('santriGrid');
+
+  if(!halaqoh){ grid.innerHTML = ''; loading.textContent = 'Pilih halaqoh untuk memuat data.'; loading.classList.remove('hidden'); return; }
+
+  loading.textContent = 'Memuat data santri...';
+  loading.classList.remove('hidden');
+  errorEl.classList.add('hidden');
+  grid.innerHTML = '';
+
+  try{
+    const result = await callApi({ action: 'getPresentasiData', role: currentUser.role, halaqoh, tanggal });
+    if(!result.ok) throw new Error(result.error || 'Gagal memuat data');
+    santriList = result.santri || [];
+    presentasiMap = {};
+    (result.presentasi || []).forEach(p => {
+      // "jumlah" = setor baru; "catatan" berisi info Murajaah otomatis (lihat handleSavePresentasi di backend)
+      const murajaahMatch = String(p.catatan || '').match(/Murajaah:\s*(\d+)/);
+      presentasiMap[p.id_santri] = {
+        setor_baru: p.jumlah || 0,
+        murajaah: murajaahMatch ? Number(murajaahMatch[1]) : 0,
+        nilai: p.nilai || ''
+      };
+    });
+    renderGrid();
+    loading.classList.add('hidden');
+  } catch(err){
+    errorEl.textContent = err.message;
+    errorEl.classList.remove('hidden');
+    loading.classList.add('hidden');
+  }
+}
+
+function persenOf(s){
+  const target = Number(s.target) || 0, tercapai = Number(s.tercapai) || 0;
+  if(target <= 0) return 0;
+  return Math.min(100, Math.round((tercapai / target) * 100));
+}
+
+/* ====== RENDER GRID ====== */
+function renderGrid(){
+  const grid = document.getElementById('santriGrid');
+  if(!santriList.length){
+    grid.innerHTML = '<div class="col-span-2 text-center text-xs text-slate-400 py-10">Tidak ada santri di halaqoh ini.</div>';
+    return;
+  }
+  grid.innerHTML = santriList.map(s => {
+    const persen = persenOf(s);
+    const existing = presentasiMap[s.id] || {};
+    const foto = s.foto_url
+      ? `<img src="${escapeAttr(s.foto_url)}" class="w-12 h-12 rounded-xl object-cover">`
+      : `<div class="w-12 h-12 rounded-xl bg-hijau/10 flex items-center justify-center text-xl">🎓</div>`;
+    return `
+      <div class="santri-presentasi-card bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-4" data-id="${escapeAttr(s.id)}">
+        <div class="flex items-center gap-3 mb-3">
+          ${foto}
+          <div class="min-w-0 flex-1">
+            <div class="font-semibold text-sm truncate">${escapeHtml(s.nama || '-')}</div>
+            <div class="text-[11px] text-slate-400">${escapeHtml(s.kelas || '-')}</div>
+          </div>
+          <div class="text-right shrink-0">
+            <div class="text-lg font-extrabold text-hijau">${persen}%</div>
+          </div>
+        </div>
+        <div class="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden mb-3">
+          <div class="h-full bg-hijau rounded-full" style="width:${persen}%"></div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 mb-2">
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Setor Baru</label>
+            <input type="number" min="0" class="inp-setor w-full px-2 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm" value="${existing.setor_baru || ''}" placeholder="0">
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Murajaah</label>
+            <input type="number" min="0" class="inp-murajaah w-full px-2 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm" value="${existing.murajaah || ''}" placeholder="0">
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Nilai</label>
+            <input type="text" class="inp-nilai w-full px-2 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm" value="${escapeAttr(existing.nilai || '')}" placeholder="A">
+          </div>
+        </div>
+
+        <button type="button" class="btn-simpan-card w-full py-2 rounded-lg bg-hijau text-white text-sm font-semibold">Simpan Data</button>
+      </div>
+    `;
+  }).join('');
+
+  grid.querySelectorAll('.btn-simpan-card').forEach(btn => {
+    btn.addEventListener('click', () => simpanCard(btn.closest('.santri-presentasi-card')));
+  });
+}
+
+/* ====== SIMPAN PER CARD ====== */
+async function simpanCard(cardEl){
+  const id = cardEl.dataset.id;
+  const setorBaru = cardEl.querySelector('.inp-setor').value;
+  const murajaah = cardEl.querySelector('.inp-murajaah').value;
+  const nilai = cardEl.querySelector('.inp-nilai').value;
+  const btn = cardEl.querySelector('.btn-simpan-card');
+  const tanggal = document.getElementById('tanggalFilter').value;
+  const halaqoh = document.getElementById('halaqohFilter').value;
+
+  btn.disabled = true; btn.textContent = 'Menyimpan...'; //FITUR BARU loading state
+
+  try{
+    const result = await callApi({
+      action: 'savePresentasi', id_santri: id, tanggal, halaqoh,
+      setor_baru: setorBaru, murajaah, nilai,
+      role: currentUser.role, username: currentUser.username
+    });
+    if(!result.ok) throw new Error(result.error || 'Gagal menyimpan');
+    cardEl.classList.add('card-saved');
+    showToast('✓ Berhasil Disimpan'); //FITUR BARU notifikasi
+    setTimeout(() => cardEl.classList.remove('card-saved'), 1500);
+  } catch(err){
+    showToast('Gagal: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Simpan Data';
+  }
+}
+
+/* ====== EKSPOR PDF (SEMUA) ====== */
+document.getElementById('btnEksporPdf').addEventListener('click', () => {
+  if(!santriList.length){ showToast('Tidak ada data untuk diekspor.'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const tanggal = document.getElementById('tanggalFilter').value;
+  const halaqoh = document.getElementById('halaqohFilter').value;
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(5,150,105);
+  doc.text(NAMA_PONDOK + ' — Presentasi Pencapaian', 14, 16);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(60,60,60);
+  doc.text(`Halaqoh: ${halaqoh}   Tanggal: ${tanggal}`, 14, 23);
+  doc.setDrawColor(212,175,55); doc.line(14, 27, 196, 27);
+
+  let y = 36;
+  doc.setFontSize(9);
+  santriList.forEach(s => {
+    const existing = presentasiMap[s.id] || {};
+    doc.setFont('helvetica','bold'); doc.setTextColor(30,30,30);
+    doc.text(`${s.nama || '-'}  (${persenOf(s)}%)`, 14, y);
+    doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
+    doc.text(`Setor baru: ${existing.setor_baru || 0} hlm   Murajaah: ${existing.murajaah || 0} hlm   Nilai: ${existing.nilai || '-'}`, 14, y + 5);
+    y += 12;
+    if(y > 280){ doc.addPage(); y = 20; }
+  });
+
+  doc.save(`presentasi-${halaqoh}-${tanggal}.pdf`);
+});
+
+/* ====== UTIL ====== */
+function escapeHtml(str){ return String(str).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+function escapeAttr(str){ return escapeHtml(str); }
+</script>
+</body>
+</html>
