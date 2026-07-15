@@ -24,6 +24,7 @@ const SHEET_SANTRI = 'DataSantri';
 const SHEET_SETORAN = 'RiwayatSetoran';
 const SHEET_USERS = 'Users';
 const SHEET_KEUANGAN = 'TransaksiKeuangan';
+const SHEET_ABSENSI = 'Absensi'; //FITUR BARU — sheet terpisah untuk modul absen (menggantikan pencatatan lama di RiwayatSetoran)
 const FOLDER_UPLOAD_NAME = 'Upload_Pondok';
 
 // Isi token Fonnte di sini kalau mau fitur WA aktif. Daftar di https://fonnte.com
@@ -82,6 +83,9 @@ function doPost(e) {
       case 'getKeuangan':   result = handleGetKeuangan(body); break;
       case 'getMonthlyProgress': result = handleGetMonthlyProgress(body); break;
       case 'getAbsenRekap': result = handleGetAbsenRekap(body); break;
+      case 'getAbsen':      result = handleGetAbsen(body); break;          //FITUR BARU
+      case 'savePresentasi': result = handleSavePresentasi(body); break;   //FITUR BARU
+      case 'getPresentasiData': result = handleGetPresentasiData(body); break; //FITUR BARU
       default:              result = { ok: false, error: 'Action tidak dikenali: ' + body.action };
     }
   } catch (err) {
@@ -261,51 +265,100 @@ function setCellByHeader(sheet, found, headerName, value) {
   sheet.getRange(found.rowIndex, col + 1).setValue(value);
 }
 
-/* ================= ABSEN (manual, dicatat oleh ustadz) ================= */
-// Absen dicatat manual oleh ustadz/admin, langsung disimpan di RiwayatSetoran
-// dengan jenis "Absen" supaya tetap satu sumber riwayat per santri.
-// Idempotent: kalau santri yang sama sudah diabsen di tanggal yang sama,
-// baris lama diperbarui (bukan bikin duplikat) — aman kalau disimpan ulang.
+/* ================= ABSEN — MODUL BARU (sheet Absensi terpisah) ================= */
+//FITUR BARU — helper: ambil sheet Absensi, buat otomatis kalau belum ada
+// (self-healing, tidak perlu jalankan ulang setupSheets di sheet yang sudah lama dipakai)
+function getAbsensiSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SHEET_ABSENSI);
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_ABSENSI);
+    const headers = ['tanggal', 'id_santri', 'status', 'catatan', 'input_by', 'input_role'];
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+//FITUR BARU — validasi akses: Ustadz cuma boleh untuk halaqoh-nya sendiri,
+// Admin/SuperAdmin bebas semua halaqoh. Dipakai bareng modul Absen & Presentasi.
+function checkHalaqohAccess(body, idSantri) {
+  if (body.role === 'Admin' || body.role === 'SuperAdmin') return { ok: true };
+  if (body.role !== 'Ustadz') return { ok: false, error: 'Role tidak punya akses ke modul ini' };
+
+  const santri = sheetToObjects(getSheet(SHEET_SANTRI)).find(s => String(s.id) === String(idSantri));
+  if (!santri) return { ok: false, error: 'Santri tidak ditemukan' };
+  if (String(santri.halaqoh) !== String(body.halaqoh)) {
+    return { ok: false, error: 'Ustadz hanya bisa mengakses santri di halaqoh-nya sendiri' };
+  }
+  return { ok: true };
+}
+
+//FITUR BARU — simpan/update absen 1 santri di 1 tanggal (idempotent per id_santri+tanggal)
 function handleSaveAbsen(body) {
-  if (!body.id_santri || !body.status) return { ok: false, error: 'id_santri dan status wajib diisi' };
-  const sheet = getSheet(SHEET_SETORAN);
-  const tanggal = body.tanggal || todayStr();
+  if (!body.id_santri || !body.status || !body.tanggal) {
+    return { ok: false, error: 'id_santri, status, dan tanggal wajib diisi' };
+  }
+  const akses = checkHalaqohAccess(body, body.id_santri);
+  if (!akses.ok) return akses;
+
+  const sheet = getAbsensiSheet();
   const values = sheet.getDataRange().getValues();
   const headers = values[0];
-  const idCol = headers.indexOf('id_santri');
   const tglCol = headers.indexOf('tanggal');
-  const jenisCol = headers.indexOf('jenis');
-  const nilaiCol = headers.indexOf('nilai');
+  const idCol = headers.indexOf('id_santri');
+  const statusCol = headers.indexOf('status');
   const catatanCol = headers.indexOf('catatan');
-  const ustadzCol = headers.indexOf('ustadz');
+  const byCol = headers.indexOf('input_by');
+  const roleCol = headers.indexOf('input_role');
 
   for (let i = 1; i < values.length; i++) {
-    if (
-      String(values[i][idCol]) === String(body.id_santri) &&
-      values[i][jenisCol] === 'Absen' &&
-      formatDateOnly(values[i][tglCol]) === tanggal
-    ) {
-      sheet.getRange(i + 1, nilaiCol + 1).setValue(body.status);
+    if (formatDateOnly(values[i][tglCol]) === body.tanggal && String(values[i][idCol]) === String(body.id_santri)) {
+      sheet.getRange(i + 1, statusCol + 1).setValue(body.status);
       sheet.getRange(i + 1, catatanCol + 1).setValue(body.catatan || '');
-      sheet.getRange(i + 1, ustadzCol + 1).setValue(body.ustadz || '');
+      sheet.getRange(i + 1, byCol + 1).setValue(body.username || '');
+      sheet.getRange(i + 1, roleCol + 1).setValue(body.role || '');
       return { ok: true, message: 'Absen diperbarui' };
     }
   }
 
-  appendRowFromObject(sheet, {
-    id_santri: body.id_santri,
-    tanggal,
-    jenis: 'Absen',
-    jumlah: '',
-    nilai: body.status, // Hadir / Izin / Sakit / Alpa
-    catatan: body.catatan || '',
-    bukti_url: '',
-    ustadz: body.ustadz || ''
-  });
+  sheet.appendRow([body.tanggal, body.id_santri, body.status, body.catatan || '', body.username || '', body.role || '']);
   return { ok: true, message: 'Absen tersimpan' };
 }
 
-/* ================= REKAP ABSEN ================= */
+//FITUR BARU — ambil data absen. Filter: tanggal (satu hari) ATAU mulai+selesai (rentang untuk rekap bulanan), + halaqoh.
+function handleGetAbsen(body) {
+  if (body.role === 'Ustadz' && !body.halaqoh) {
+    return { ok: false, error: 'Halaqoh wajib diisi untuk role Ustadz' };
+  }
+  const sheet = getAbsensiSheet();
+  let rows = sheetToObjects(sheet).map(r => ({ ...r, tanggal: formatDateOnly(r.tanggal) }));
+
+  if (body.tanggal) rows = rows.filter(r => r.tanggal === body.tanggal);
+  if (body.mulai) rows = rows.filter(r => r.tanggal >= body.mulai);
+  if (body.selesai) rows = rows.filter(r => r.tanggal <= body.selesai);
+
+  const santriMap = {};
+  sheetToObjects(getSheet(SHEET_SANTRI)).forEach(s => { santriMap[String(s.id)] = s; });
+
+  if (body.halaqoh) {
+    rows = rows.filter(r => {
+      const s = santriMap[String(r.id_santri)];
+      return s && String(s.halaqoh) === String(body.halaqoh);
+    });
+  }
+
+  rows = rows.map(r => {
+    const s = santriMap[String(r.id_santri)] || {};
+    return { ...r, nama: s.nama || '(tidak ditemukan)', kelas: s.kelas || '-', halaqoh: s.halaqoh || '-' };
+  });
+
+  return { ok: true, data: rows };
+}
+
+/* ================= ABSEN (LAMA — dipertahankan agar tidak memutus riwayat lama) ================= */
+// Catatan: modul Absen yang aktif sekarang pakai sheet "Absensi" (lihat handleSaveAbsen/handleGetAbsen di atas).
+// Fungsi di bawah ini legacy dari implementasi sebelumnya (nulis ke RiwayatSetoran jenis "Absen") — tidak lagi dipanggil dari absen.html versi baru.
 function handleGetAbsenRekap(body) {
   const { mulai, selesai, halaqoh } = body;
   if (!mulai || !selesai) return { ok: false, error: 'mulai dan selesai wajib diisi' };
@@ -375,6 +428,71 @@ function handleSaveKeuangan(body) {
 
 function handleGetKeuangan(body) {
   return { ok: true, data: sheetToObjects(getSheet(SHEET_KEUANGAN)) };
+}
+
+/* ================= PRESENTASI PENCAPAIAN — MODUL BARU ================= */
+//FITUR BARU — simpan hasil presentasi 1 santri (Setor Baru + Murajaah + Nilai) sebagai
+// 1 baris di RiwayatSetoran dengan jenis "Presentasi". Idempotent per id_santri+tanggal
+// (kalau sudah pernah disimpan di tanggal yang sama, baris lama diperbarui).
+function handleSavePresentasi(body) {
+  if (!body.id_santri || !body.tanggal) return { ok: false, error: 'id_santri dan tanggal wajib diisi' };
+  const akses = checkHalaqohAccess(body, body.id_santri);
+  if (!akses.ok) return akses;
+
+  const catatanGabungan = `Murajaah: ${body.murajaah || 0} hlm.` + (body.catatan ? ' ' + body.catatan : '');
+
+  const sheet = getSheet(SHEET_SETORAN);
+  const values = sheet.getDataRange().getValues();
+  const headers = values[0];
+  const idCol = headers.indexOf('id_santri');
+  const tglCol = headers.indexOf('tanggal');
+  const jenisCol = headers.indexOf('jenis');
+  const jumlahCol = headers.indexOf('jumlah');
+  const nilaiCol = headers.indexOf('nilai');
+  const catatanCol = headers.indexOf('catatan');
+  const ustadzCol = headers.indexOf('ustadz');
+
+  for (let i = 1; i < values.length; i++) {
+    if (
+      String(values[i][idCol]) === String(body.id_santri) &&
+      values[i][jenisCol] === 'Presentasi' &&
+      formatDateOnly(values[i][tglCol]) === body.tanggal
+    ) {
+      sheet.getRange(i + 1, jumlahCol + 1).setValue(body.setor_baru || 0);
+      sheet.getRange(i + 1, nilaiCol + 1).setValue(body.nilai || '');
+      sheet.getRange(i + 1, catatanCol + 1).setValue(catatanGabungan);
+      sheet.getRange(i + 1, ustadzCol + 1).setValue(body.username || '');
+      return { ok: true, message: 'Presentasi diperbarui' };
+    }
+  }
+
+  appendRowFromObject(sheet, {
+    id_santri: body.id_santri,
+    tanggal: body.tanggal,
+    jenis: 'Presentasi',
+    jumlah: body.setor_baru || 0,
+    nilai: body.nilai || '',
+    catatan: catatanGabungan,
+    bukti_url: '',
+    ustadz: body.username || ''
+  });
+  return { ok: true, message: 'Presentasi tersimpan' };
+}
+
+//FITUR BARU — data untuk grid presentasi: daftar santri (sudah difilter halaqoh + akses role)
+// + data presentasi yang sudah diisi di tanggal terpilih (untuk prefill form).
+function handleGetPresentasiData(body) {
+  if (body.role === 'Ustadz' && !body.halaqoh) {
+    return { ok: false, error: 'Halaqoh wajib diisi untuk role Ustadz' };
+  }
+  let santri = sheetToObjects(getSheet(SHEET_SANTRI));
+  if (body.halaqoh) santri = santri.filter(s => String(s.halaqoh) === String(body.halaqoh));
+
+  const tanggal = body.tanggal || todayStr();
+  const presentasi = sheetToObjects(getSheet(SHEET_SETORAN))
+    .filter(r => r.jenis === 'Presentasi' && formatDateOnly(r.tanggal) === tanggal);
+
+  return { ok: true, santri, presentasi };
 }
 
 /* ================= WHATSAPP (Fonnte) ================= */
