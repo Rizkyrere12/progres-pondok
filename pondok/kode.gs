@@ -520,18 +520,24 @@ function handleTambahUser(body) {
     return { status: 'error', message: 'Username, PIN, dan Role wajib diisi' };
   }
 
-  ensureUsersNamaColumn();
-  const sheet = getSheet(SHEET_USERS);
-  const users = sheetToObjects(sheet);
-  const duplikat = users.some(u => String(u.username).toLowerCase() === String(username).toLowerCase());
-  if (duplikat) {
-    return { status: 'error', message: 'Username sudah dipakai, pilih username lain' };
-  }
+  try {
+    ensureUsersNamaColumn();
+    const sheet = getSheet(SHEET_USERS);
+    const users = sheetToObjects(sheet);
+    const duplikat = users.some(u => String(u.username).toLowerCase() === String(username).toLowerCase());
+    if (duplikat) {
+      return { status: 'error', message: 'Username sudah dipakai, pilih username lain' };
+    }
 
-  appendRowFromObject(sheet, {
-    username, pin, nama: nama || '', role, halaqoh: halaqoh || '', no_wa: no_hp || ''
-  });
-  return { status: 'ok', message: 'User berhasil ditambahkan' };
+    appendRowFromObject(sheet, {
+      username, pin, nama: nama || '', role, halaqoh: halaqoh || '', no_wa: no_hp || ''
+    });
+    return { status: 'ok', message: 'User berhasil ditambahkan' };
+  } catch (err) {
+    // Ditangkap eksplisit di sini supaya pesan error ASLI ikut terkirim ke client,
+    // bukan ketutup pesan generik dari catch utama di doPost.
+    return { status: 'error', message: 'Error internal: ' + err.message };
+  }
 }
 
 //FITUR BARU — daftar user untuk tabel manajemen SuperAdmin. PIN sengaja tidak dikirim ke
