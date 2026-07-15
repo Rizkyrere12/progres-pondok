@@ -211,7 +211,7 @@ async function loadSantri(){
 /* ====== BIODATA ====== */
 function renderBiodata(){
   document.getElementById('namaSantri').textContent = santriData.nama || '(tanpa nama)';
-  document.getElementById('metaSantri').textContent = `${santriData.kelas || '-'} · ${santriData.halaqoh || '-'} · Wali: ${santriData.no_wali || '-'}`;
+  document.getElementById('metaSantri').textContent = `${santriData.kelas || '-'} · Wali: ${santriData.no_wali || '-'}`;
   document.getElementById('poinSantri').textContent = Number(santriData.poin) || 0;
   if(santriData.foto_url){
     document.getElementById('fotoWrap').innerHTML = `<img src="${escapeAttr(santriData.foto_url)}" class="w-full h-full object-cover">`;
@@ -428,7 +428,7 @@ document.getElementById('btnRaportPdf').addEventListener('click', () => {
 
   doc.setFontSize(10); doc.setFont('helvetica','normal');
   doc.text(`Nama: ${santriData.nama || '-'}`, 14, 40);
-  doc.text(`Kelas: ${santriData.kelas || '-'}    Halaqoh: ${santriData.halaqoh || '-'}`, 14, 46);
+  doc.text(`Kelas: ${santriData.kelas || '-'}`, 14, 46);
   doc.text(`Poin: ${santriData.poin || 0}`, 14, 52);
 
   doc.setFont('helvetica','bold'); doc.text("Target Progres", 14, 62);
