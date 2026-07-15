@@ -42,15 +42,23 @@
     <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Input setoran baru, murajaah, dan nilai langsung per santri.</p>
 
     <!-- Filter -->
-    <div class="flex flex-wrap gap-2 mb-4">
+    <div class="flex flex-wrap gap-2 mb-3">
       <input id="tanggalFilter" type="date" class="px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 text-sm">
-      <select id="halaqohFilter" class="flex-1 min-w-[140px] px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 text-sm">
-        <option value="">Pilih Halaqoh</option>
+      <select id="kelasFilter" class="flex-1 min-w-[140px] px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 text-sm">
+        <option value="">Pilih Kelas</option>
       </select>
       <button id="btnEksporPdf" class="px-4 py-2.5 rounded-xl bg-emas text-slate-900 font-semibold text-sm shadow-sm">📄 Ekspor PDF</button>
     </div>
 
-    <div id="loadingGrid" class="text-center py-10 text-sm text-slate-400">Pilih halaqoh untuk memuat data.</div>
+    <!-- FITUR BARU: search + ringkasan status isi -->
+    <div id="gridToolbar" class="hidden flex-wrap items-center justify-between gap-2 mb-4">
+      <input id="searchSantri" type="text" placeholder="🔍 Cari nama santri..." class="flex-1 min-w-[160px] px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 text-sm">
+      <div class="text-xs font-semibold text-slate-500 dark:text-slate-400">
+        Sudah diisi: <span id="cntSudahIsi" class="text-hijau">0</span> / <span id="cntTotalSantri">0</span>
+      </div>
+    </div>
+
+    <div id="loadingGrid" class="text-center py-10 text-sm text-slate-400">Pilih kelas untuk memuat data.</div>
     <div id="errorGrid" class="hidden text-center py-10 text-red-500 text-sm px-6"></div>
 
     <div id="santriGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
@@ -65,11 +73,11 @@
 const API_URL = 'https://script.google.com/macros/s/AKfycbw3bi_-pKcsAlxhMgeqFuTVUKkpe3hNmN4urGs5pirGfAAtTdUFCyvbKRm-9x-Z0h7g5A/exec';
 const NAMA_PONDOK = 'Pondok Pesantren';
 
-/* ====== AUTH GUARD + KONTROL AKSES ROLE ====== */ //FITUR BARU
+/* ====== AUTH GUARD + KONTROL AKSES ROLE ====== */
 const rawUser = sessionStorage.getItem('pondok_user');
 if(!rawUser) window.location.href = 'login.html';
 const currentUser = rawUser ? JSON.parse(rawUser) : null;
-const ALLOWED_ROLES = ['Ustadz', 'Admin', 'SuperAdmin']; //FITUR BARU
+const ALLOWED_ROLES = ['Ustadz', 'Admin', 'SuperAdmin'];
 
 if(currentUser && !ALLOWED_ROLES.includes(currentUser.role)){
   document.getElementById('accessDenied').classList.remove('hidden');
@@ -106,46 +114,44 @@ async function callApi(payload){
 
 /* ====== STATE ====== */
 let santriList = [];
-let presentasiMap = {}; // { id_santri: { jumlah, nilai, catatan } }
+let presentasiMap = {}; // { id_santri: { setor_baru, murajaah, nilai } }
 
 /* ====== INIT ====== */
 document.getElementById('tanggalFilter').value = new Date().toISOString().slice(0,10);
 
-function setupHalaqohLock(selectEl){
-  //FITUR BARU — Ustadz otomatis dikunci ke halaqoh-nya sendiri
-  if(currentUser.role === 'Ustadz'){
-    selectEl.innerHTML = `<option value="${currentUser.halaqoh}">${currentUser.halaqoh}</option>`;
-    selectEl.value = currentUser.halaqoh;
-    selectEl.disabled = true;
+/* ====== FITUR BARU: KELAS DINAMIS (dari sheet Kelas, dikelola SuperAdmin) ====== */
+async function loadKelasOptions(){
+  try{
+    const result = await callApi({ action: 'getKelasList' });
+    const kelasList = result.ok ? (result.data || []) : [];
+    const sel = document.getElementById('kelasFilter');
+    sel.innerHTML = '<option value="">Pilih Kelas</option>';
+    kelasList.forEach(k => sel.insertAdjacentHTML('beforeend', `<option value="${k}">${k}</option>`));
+
+    if(currentUser.role === 'Ustadz' && currentUser.kelas){
+      sel.value = currentUser.kelas;
+      sel.disabled = true;
+      loadPresentasi();
+    }
+  } catch(err){
+    showToast('Gagal memuat daftar kelas: ' + err.message);
   }
 }
-setupHalaqohLock(document.getElementById('halaqohFilter'));
+loadKelasOptions();
 
-document.getElementById('halaqohFilter').addEventListener('change', loadPresentasi);
+document.getElementById('kelasFilter').addEventListener('change', loadPresentasi);
 document.getElementById('tanggalFilter').addEventListener('change', loadPresentasi);
-
-//FITUR BARU — Admin/SuperAdmin: isi pilihan halaqoh dari data santri yang ada
-async function populateHalaqohOptionsIfNeeded(){
-  if(currentUser.role === 'Ustadz') { loadPresentasi(); return; }
-  try{
-    const result = await callApi({ action: 'getData', role: currentUser.role });
-    if(!result.ok) return;
-    const halaqohSet = [...new Set((result.data || []).map(s => s.halaqoh).filter(Boolean))].sort();
-    const sel = document.getElementById('halaqohFilter');
-    halaqohSet.forEach(h => sel.insertAdjacentHTML('beforeend', `<option value="${h}">${h}</option>`));
-  } catch(err){ /* biarkan user pilih manual kalau gagal */ }
-}
-populateHalaqohOptionsIfNeeded();
 
 /* ====== LOAD DATA ====== */
 async function loadPresentasi(){
-  const halaqoh = document.getElementById('halaqohFilter').value;
+  const kelas = document.getElementById('kelasFilter').value;
   const tanggal = document.getElementById('tanggalFilter').value;
   const loading = document.getElementById('loadingGrid');
   const errorEl = document.getElementById('errorGrid');
   const grid = document.getElementById('santriGrid');
+  const toolbar = document.getElementById('gridToolbar');
 
-  if(!halaqoh){ grid.innerHTML = ''; loading.textContent = 'Pilih halaqoh untuk memuat data.'; loading.classList.remove('hidden'); return; }
+  if(!kelas){ grid.innerHTML = ''; toolbar.classList.add('hidden'); loading.textContent = 'Pilih kelas untuk memuat data.'; loading.classList.remove('hidden'); return; }
 
   loading.textContent = 'Memuat data santri...';
   loading.classList.remove('hidden');
@@ -153,7 +159,7 @@ async function loadPresentasi(){
   grid.innerHTML = '';
 
   try{
-    const result = await callApi({ action: 'getPresentasiData', role: currentUser.role, halaqoh, tanggal });
+    const result = await callApi({ action: 'getPresentasiData', role: currentUser.role, kelas, tanggal });
     if(!result.ok) throw new Error(result.error || 'Gagal memuat data');
     santriList = result.santri || [];
     presentasiMap = {};
@@ -167,6 +173,7 @@ async function loadPresentasi(){
       };
     });
     renderGrid();
+    toolbar.classList.remove('hidden');
     loading.classList.add('hidden');
   } catch(err){
     errorEl.textContent = err.message;
@@ -181,16 +188,29 @@ function persenOf(s){
   return Math.min(100, Math.round((tercapai / target) * 100));
 }
 
+//FITUR BARU — sudah ada data presentasi hari ini (setor baru atau murajaah > 0)?
+function sudahDiisi(id){
+  const e = presentasiMap[id];
+  return !!e && (Number(e.setor_baru) > 0 || Number(e.murajaah) > 0 || (e.nilai || '').trim() !== '');
+}
+
 /* ====== RENDER GRID ====== */
 function renderGrid(){
   const grid = document.getElementById('santriGrid');
-  if(!santriList.length){
-    grid.innerHTML = '<div class="col-span-2 text-center text-xs text-slate-400 py-10">Tidak ada santri di halaqoh ini.</div>';
+  const q = document.getElementById('searchSantri').value.trim().toLowerCase();
+  const filtered = q ? santriList.filter(s => String(s.nama || '').toLowerCase().includes(q)) : santriList;
+
+  document.getElementById('cntTotalSantri').textContent = santriList.length;
+  document.getElementById('cntSudahIsi').textContent = santriList.filter(s => sudahDiisi(s.id)).length;
+
+  if(!filtered.length){
+    grid.innerHTML = `<div class="col-span-2 text-center text-xs text-slate-400 py-10">${santriList.length ? 'Tidak ada santri yang cocok pencarian.' : 'Tidak ada santri di kelas ini.'}</div>`;
     return;
   }
-  grid.innerHTML = santriList.map(s => {
+  grid.innerHTML = filtered.map(s => {
     const persen = persenOf(s);
     const existing = presentasiMap[s.id] || {};
+    const isDone = sudahDiisi(s.id);
     const foto = s.foto_url
       ? `<img src="${escapeAttr(s.foto_url)}" class="w-12 h-12 rounded-xl object-cover">`
       : `<div class="w-12 h-12 rounded-xl bg-hijau/10 flex items-center justify-center text-xl">🎓</div>`;
@@ -199,7 +219,10 @@ function renderGrid(){
         <div class="flex items-center gap-3 mb-3">
           ${foto}
           <div class="min-w-0 flex-1">
-            <div class="font-semibold text-sm truncate">${escapeHtml(s.nama || '-')}</div>
+            <div class="flex items-center gap-1.5">
+              <div class="font-semibold text-sm truncate">${escapeHtml(s.nama || '-')}</div>
+              ${isDone ? '<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-hijau-soft text-hijau dark:bg-hijau/20 shrink-0">✓ Terisi</span>' : '<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-400 dark:bg-slate-700 shrink-0">Belum</span>'}
+            </div>
             <div class="text-[11px] text-slate-400">${escapeHtml(s.kelas || '-')}</div>
           </div>
           <div class="text-right shrink-0">
@@ -224,6 +247,7 @@ function renderGrid(){
             <input type="text" class="inp-nilai w-full px-2 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm" value="${escapeAttr(existing.nilai || '')}" placeholder="A">
           </div>
         </div>
+        <p class="input-warning text-[10px] text-amber-500 mb-2 hidden">Isi minimal salah satu (Setor Baru / Murajaah / Nilai).</p>
 
         <button type="button" class="btn-simpan-card w-full py-2 rounded-lg bg-hijau text-white text-sm font-semibold">Simpan Data</button>
       </div>
@@ -235,33 +259,54 @@ function renderGrid(){
   });
 }
 
+document.getElementById('searchSantri').addEventListener('input', renderGrid);
+
 /* ====== SIMPAN PER CARD ====== */
 async function simpanCard(cardEl){
   const id = cardEl.dataset.id;
   const setorBaru = cardEl.querySelector('.inp-setor').value;
   const murajaah = cardEl.querySelector('.inp-murajaah').value;
   const nilai = cardEl.querySelector('.inp-nilai').value;
+  const warningEl = cardEl.querySelector('.input-warning');
   const btn = cardEl.querySelector('.btn-simpan-card');
   const tanggal = document.getElementById('tanggalFilter').value;
-  const halaqoh = document.getElementById('halaqohFilter').value;
+  const kelas = document.getElementById('kelasFilter').value;
+
+  //FITUR BARU — validasi: minimal 1 field terisi, cegah simpan data kosong tak sengaja
+  if(!setorBaru && !murajaah && !nilai.trim()){
+    warningEl.classList.remove('hidden');
+    return;
+  }
+  warningEl.classList.add('hidden');
 
   btn.disabled = true; btn.textContent = 'Menyimpan...'; //FITUR BARU loading state
 
   try{
     const result = await callApi({
-      action: 'savePresentasi', id_santri: id, tanggal, halaqoh,
+      action: 'savePresentasi', id_santri: id, tanggal, kelas,
       setor_baru: setorBaru, murajaah, nilai,
       role: currentUser.role, username: currentUser.username
     });
     if(!result.ok) throw new Error(result.error || 'Gagal menyimpan');
-    cardEl.classList.add('card-saved');
+
+    presentasiMap[id] = { setor_baru: Number(setorBaru) || 0, murajaah: Number(murajaah) || 0, nilai };
     showToast('✓ Berhasil Disimpan'); //FITUR BARU notifikasi
-    setTimeout(() => cardEl.classList.remove('card-saved'), 1500);
+    renderGrid(); // refresh badge "Sudah diisi" & ringkasan hitungan
+    const refreshedCard = findCardById(id);
+    if(refreshedCard){
+      refreshedCard.classList.add('card-saved');
+      setTimeout(() => refreshedCard.classList.remove('card-saved'), 1500);
+    }
   } catch(err){
     showToast('Gagal: ' + err.message);
   } finally {
-    btn.disabled = false; btn.textContent = 'Simpan Data';
+    const btnAfter = findCardById(id)?.querySelector('.btn-simpan-card');
+    if(btnAfter){ btnAfter.disabled = false; btnAfter.textContent = 'Simpan Data'; }
   }
+}
+
+function findCardById(id){
+  return Array.from(document.querySelectorAll('.santri-presentasi-card')).find(c => c.dataset.id === id);
 }
 
 /* ====== EKSPOR PDF (SEMUA) ====== */
@@ -270,12 +315,12 @@ document.getElementById('btnEksporPdf').addEventListener('click', () => {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   const tanggal = document.getElementById('tanggalFilter').value;
-  const halaqoh = document.getElementById('halaqohFilter').value;
+  const kelas = document.getElementById('kelasFilter').value;
 
   doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(5,150,105);
   doc.text(NAMA_PONDOK + ' — Presentasi Pencapaian', 14, 16);
   doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(60,60,60);
-  doc.text(`Halaqoh: ${halaqoh}   Tanggal: ${tanggal}`, 14, 23);
+  doc.text(`Kelas: ${kelas}   Tanggal: ${tanggal}`, 14, 23);
   doc.setDrawColor(212,175,55); doc.line(14, 27, 196, 27);
 
   let y = 36;
@@ -290,7 +335,7 @@ document.getElementById('btnEksporPdf').addEventListener('click', () => {
     if(y > 280){ doc.addPage(); y = 20; }
   });
 
-  doc.save(`presentasi-${halaqoh}-${tanggal}.pdf`);
+  doc.save(`presentasi-${kelas}-${tanggal}.pdf`);
 });
 
 /* ====== UTIL ====== */
